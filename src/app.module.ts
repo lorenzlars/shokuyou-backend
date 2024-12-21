@@ -19,6 +19,14 @@ import { Recipe } from './recipes/recipe.entity'
         url: configService.get('DATABASE_URL'),
         entities: [Recipe],
         synchronize: true,
+        ...(process.env.MODE === 'development'
+          ? {}
+          : {
+              ssl: {
+                require: true,
+                rejectUnauthorized: false,
+              },
+            }),
       }),
     }),
     RecipesModule,
