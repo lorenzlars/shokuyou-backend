@@ -3,6 +3,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { RecipesModule } from './recipes/recipes.module';
+import { Recipe } from './recipes/recipe.entity'
 
 @Module({
   imports: [
@@ -15,9 +17,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       useFactory: async (configService) => ({
         type: 'postgres',
         url: configService.get('DATABASE_URL'),
+        entities: [Recipe],
         synchronize: true,
       }),
     }),
+    RecipesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,0 +1,12 @@
+services:
+  db:
+    container_name: db
+    image: postgres
+    restart: unless-stopped
+    shm_size: 128mb
+    environment:
+      POSTGRES_PASSWORD: shokuyou
+      POSTGRES_USER: shokuyou
+      POSTGRES_DB: shokuyou
+    ports:
+      - 5432:5432
