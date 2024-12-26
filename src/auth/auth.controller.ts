@@ -1,16 +1,17 @@
+import { Controller, Post, UseGuards, Get, Body } from '@nestjs/common';
 import {
-  Controller,
-  Request,
-  Post,
-  UseGuards,
-  Get,
-  Body,
-} from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { LocalAuthGuard } from './local-auth.guard';
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { CreateUserDto } from '../users/dto/create-user.dto';
+import { LoginUserDto } from './dto/login-user.dto';
+import { LoginResponseDto } from './dto/login-response.dto';
+import { User } from '../users/user.decorator';
+import { UserResponseDto } from './dto/user-response.dto';
 
 @ApiTags('auth')
 @Controller({
@@ -20,34 +21,28 @@ import { CreateUserDto } from '../users/dto/create-user.dto';
 export class AuthController {
   constructor(private authService: AuthService) { }
 
-  @UseGuards(LocalAuthGuard)
   @ApiOperation({
     description: 'Login the current user',
     operationId: 'login',
   })
-  @Post('login')
-  async login(@Request() req) {
-    return this.authService.login(req.user);
-  }
-
-  @UseGuards(LocalAuthGuard)
-  @ApiOperation({
-    description: 'Logout the current user',
-    operationId: 'logout',
+  @ApiOkResponse({
+    description: 'Successfully logged in',
+    type: LoginResponseDto,
   })
-  @Post('logout')
-  async logout(@Request() req) {
-    return req.logout();
+  @Post('login')
+  async login(@Body() loginUserDto: LoginUserDto) {
+    return this.authService.login(loginUserDto);
   }
 
-  @UseGuards(LocalAuthGuard)
   @ApiOperation({
     description: 'Register a new user',
     operationId: 'register',
   })
   @Post('register')
   async register(@Body() createUserDto: CreateUserDto) {
-    return this.authService.register(createUserDto);
+    this.authService.register(createUserDto);
+
+    return ApiCreatedResponse();
   }
 
   @UseGuards(JwtAuthGuard)
@@ -55,8 +50,12 @@ export class AuthController {
     description: 'Get the current user',
     operationId: 'profile',
   })
+  @ApiOkResponse({
+    description: 'Successfully retrieved the current user',
+    type: UserResponseDto,
+  })
   @Get('profile')
-  getProfile(@Request() req) {
-    return req.user;
+  getProfile(@User() user) {
+    return this.authService.getProfile(user.id);
   }
 }
