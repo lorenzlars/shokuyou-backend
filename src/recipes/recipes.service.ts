@@ -2,8 +2,8 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Recipe } from './recipe.entity'
-import { CreateRecipeDto } from './dto/CreateRecipeDto'
-import { UpdateRecipeDto } from './dto/UpdateRecipeDto'
+import { CreateRecipeDto } from './dto/create-recip.dto'
+import { UpdateRecipeDto } from './dto/update-recipe.dto'
 
 @Injectable()
 export class RecipesService {
@@ -12,7 +12,7 @@ export class RecipesService {
   constructor(
     @InjectRepository(Recipe)
     private recipeRepository: Repository<Recipe>,
-  ) {}
+  ) { }
 
   async findAll() {
     return this.recipeRepository.find();
@@ -38,7 +38,7 @@ export class RecipesService {
     return this.recipeRepository.save(updateRecipeDto);
   }
 
-  async removeRecipe(id: string): Promise<void> {
+  async removeRecipe(id: string) {
     await this.recipeRepository.delete(id);
   }
 }
