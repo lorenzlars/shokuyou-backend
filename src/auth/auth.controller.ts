@@ -19,7 +19,7 @@ import { UserResponseDto } from './dto/user-response.dto';
   version: '1',
 })
 export class AuthController {
-  constructor(private authService: AuthService) { }
+  constructor(private authService: AuthService) {}
 
   @ApiOperation({
     description: 'Login the current user',

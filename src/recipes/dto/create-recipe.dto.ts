@@ -12,4 +12,4 @@ export class CreateRecipeDto {
   description: string;
 
   // Füge weitere Eigenschaften mit @ApiProperty hinzu
-} 
+}

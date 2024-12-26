@@ -25,11 +25,11 @@ import { User } from './users/user.entity';
         ...(process.env.MODE === 'development'
           ? {}
           : {
-            ssl: {
-              require: true,
-              rejectUnauthorized: false,
-            },
-          }),
+              ssl: {
+                require: true,
+                rejectUnauthorized: false,
+              },
+            }),
       }),
     }),
     RecipesModule,
@@ -39,4 +39,4 @@ import { User } from './users/user.entity';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

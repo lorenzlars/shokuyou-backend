@@ -8,11 +8,11 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { RecipesService } from './recipes.service'
+import { RecipesService } from './recipes.service';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CreateRecipeDto } from './dto/create-recip.dto'
-import { UpdateRecipeDto } from './dto/update-recipe.dto'
-import { JwtAuthGuard } from '../auth/jwt-auth.guard'
+import { CreateRecipeDto } from './dto/create-recip.dto';
+import { UpdateRecipeDto } from './dto/update-recipe.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('recipes')
 @UseGuards(JwtAuthGuard)
@@ -21,7 +21,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard'
   version: '1',
 })
 export class RecipesController {
-  constructor(private readonly recipesService: RecipesService) { }
+  constructor(private readonly recipesService: RecipesService) {}
 
   @ApiOperation({
     summary: 'Add a new recipe',
