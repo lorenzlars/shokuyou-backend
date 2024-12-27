@@ -43,7 +43,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('login')
   async login(@Body() loginUserDto: LoginUserDto) {
-    await this.authService.login(loginUserDto);
+    return await this.authService.login(loginUserDto);
   }
 
   @ApiOperation({

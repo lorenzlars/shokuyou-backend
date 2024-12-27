@@ -41,7 +41,7 @@ export class RecipesController {
   })
   @Post()
   async addRecipe(@Body() createRecipeDto: CreateRecipeDto) {
-    await this.recipesService.addRecipe(createRecipeDto);
+    return await this.recipesService.addRecipe(createRecipeDto);
   }
 
   @ApiOperation({
@@ -54,7 +54,7 @@ export class RecipesController {
   })
   @Get(':id')
   async getRecipe(@Param('id') id: string) {
-    await this.recipesService.findOne(id);
+    return await this.recipesService.findOne(id);
   }
 
   @ApiOperation({
@@ -67,7 +67,7 @@ export class RecipesController {
   })
   @Get()
   async getRecipes() {
-    await this.recipesService.findAll();
+    return await this.recipesService.findAll();
   }
 
   @ApiOperation({
@@ -84,7 +84,7 @@ export class RecipesController {
     @Param('id') id: string,
     @Body() updateRecipeDto: UpdateRecipeDto,
   ) {
-    await this.recipesService.updateRecipe(id, updateRecipeDto);
+    return await this.recipesService.updateRecipe(id, updateRecipeDto);
   }
 
   @ApiOperation({

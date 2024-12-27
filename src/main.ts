@@ -13,22 +13,28 @@ async function bootstrap() {
   app.enableCors({
     origin: ['http://localhost:5173', 'https://shokuyou.larslorenz.dev'],
   });
+
   app.enableVersioning({
     type: VersioningType.URI,
   });
 
-  const config = new DocumentBuilder()
-    .setTitle('Shokuyou')
-    .setDescription('The Shokuyou API description')
-    .setVersion('0.0.1')
-    .build();
-  const options: SwaggerDocumentOptions = {
-    operationIdFactory: (controllerKey: string, methodKey: string) => methodKey,
-  };
-  const document = SwaggerModule.createDocument(app, config, options);
-  SwaggerModule.setup('docs', app, document);
+  if (process.env.MODE === 'development') {
+    const config = new DocumentBuilder()
+      .setTitle('Shokuyou')
+      .setDescription('The Shokuyou API description')
+      .setVersion('0.0.1')
+      .build();
+    const options: SwaggerDocumentOptions = {
+      operationIdFactory: (controllerKey: string, methodKey: string) => methodKey,
+    };
+    const document = SwaggerModule.createDocument(app, config, options);
+
+    SwaggerModule.setup('docs', app, document);
+  }
 
   await app.listen(process.env.PORT ?? 3000);
 }
+
+console.log(process.env.MODE);
 
 bootstrap();
