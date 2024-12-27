@@ -1,5 +1,15 @@
-import { Controller, Post, UseGuards, Get, Body } from '@nestjs/common';
 import {
+  Controller,
+  Post,
+  UseGuards,
+  Get,
+  Body,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
+import {
+  ApiBody,
+  ApiConflictResponse,
   ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
@@ -11,6 +21,7 @@ import { CreateUserDto } from '../users/dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { User } from '../users/user.decorator';
+import { User as UserEntity } from '../users/user.entity';
 import { UserResponseDto } from './dto/user-response.dto';
 
 @ApiTags('auth')
@@ -19,43 +30,53 @@ import { UserResponseDto } from './dto/user-response.dto';
   version: '1',
 })
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
   @ApiOperation({
-    description: 'Login the current user',
-    operationId: 'login',
+    summary: 'Login the current user',
+    operationId: 'postLogin',
   })
   @ApiOkResponse({
     description: 'Successfully logged in',
     type: LoginResponseDto,
   })
+  @HttpCode(HttpStatus.OK)
   @Post('login')
   async login(@Body() loginUserDto: LoginUserDto) {
-    return this.authService.login(loginUserDto);
+    await this.authService.login(loginUserDto);
   }
 
   @ApiOperation({
-    description: 'Register a new user',
-    operationId: 'register',
+    summary: 'Register a new user',
+    operationId: 'postRegister',
   })
+  @ApiBody({
+    description: 'Daten zur Erstellung eines neuen Benutzers',
+    type: CreateUserDto,
+  })
+  @ApiCreatedResponse({
+    description: 'User successfully registered',
+  })
+  @ApiConflictResponse({
+    description: 'User already exists',
+  })
+  @HttpCode(HttpStatus.CREATED)
   @Post('register')
   async register(@Body() createUserDto: CreateUserDto) {
-    this.authService.register(createUserDto);
-
-    return ApiCreatedResponse();
+    await this.authService.register(createUserDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
-    description: 'Get the current user',
-    operationId: 'profile',
+    summary: 'Get the current user',
+    operationId: 'getProfile',
   })
   @ApiOkResponse({
     description: 'Successfully retrieved the current user',
     type: UserResponseDto,
   })
   @Get('profile')
-  getProfile(@User() user) {
-    return this.authService.getProfile(user.id);
+  async getProfile(@User() user: UserEntity) {
+    await this.authService.getProfile(user.id);
   }
 }

@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RecipesModule } from './recipes/recipes.module';
@@ -25,18 +23,16 @@ import { User } from './users/user.entity';
         ...(process.env.MODE === 'development'
           ? {}
           : {
-              ssl: {
-                require: true,
-                rejectUnauthorized: false,
-              },
-            }),
+            ssl: {
+              require: true,
+              rejectUnauthorized: false,
+            },
+          }),
       }),
     }),
     RecipesModule,
     AuthModule,
     UsersModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
