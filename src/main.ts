@@ -9,6 +9,7 @@ import {
 import { json, urlencoded } from 'express';
 
 import 'reflect-metadata';
+import { DUMMY_BEARER_TOKEN } from './auth/constants';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -58,7 +59,7 @@ async function bootstrap() {
               scheme: 'bearer',
               bearerFormat: 'JWT',
             },
-            value: 'dummy_access_token',
+            value: DUMMY_BEARER_TOKEN,
           },
         },
       },
