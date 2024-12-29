@@ -6,6 +6,7 @@ import {
   SwaggerDocumentOptions,
   SwaggerModule,
 } from '@nestjs/swagger';
+import { json, urlencoded } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -18,6 +19,10 @@ async function bootstrap() {
     type: VersioningType.URI,
   });
 
+  // Increase upload limit for handling images
+  app.use(json({ limit: '50mb' }));
+  app.use(urlencoded({ extended: true, limit: '50mb' }));
+
   if (process.env.MODE === 'development') {
     const config = new DocumentBuilder()
       .setTitle('Shokuyou')
@@ -25,7 +30,8 @@ async function bootstrap() {
       .setVersion('0.0.1')
       .build();
     const options: SwaggerDocumentOptions = {
-      operationIdFactory: (controllerKey: string, methodKey: string) => methodKey,
+      operationIdFactory: (controllerKey: string, methodKey: string) =>
+        methodKey,
     };
     const document = SwaggerModule.createDocument(app, config, options);
 

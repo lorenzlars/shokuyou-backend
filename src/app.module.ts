@@ -10,7 +10,7 @@ import { User } from './users/user.entity';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: '.env.development',
+      envFilePath: ['.env.development', '.env.development.local'],
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -23,11 +23,11 @@ import { User } from './users/user.entity';
         ...(process.env.MODE === 'development'
           ? {}
           : {
-            ssl: {
-              require: true,
-              rejectUnauthorized: false,
-            },
-          }),
+              ssl: {
+                require: true,
+                rejectUnauthorized: false,
+              },
+            }),
       }),
     }),
     RecipesModule,
@@ -35,4 +35,4 @@ import { User } from './users/user.entity';
     UsersModule,
   ],
 })
-export class AppModule { }
+export class AppModule {}

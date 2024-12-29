@@ -23,4 +23,10 @@ export class Recipe {
   })
   @Column({ nullable: true })
   description?: string;
+
+  @ApiProperty({
+    description: 'The URL of the recipe image',
+  })
+  @Column({ nullable: true })
+  url?: string;
 }

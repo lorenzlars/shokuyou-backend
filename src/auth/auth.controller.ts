@@ -8,6 +8,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiConflictResponse,
   ApiCreatedResponse,
@@ -30,7 +31,7 @@ import { UserResponseDto } from './dto/user-response.dto';
   version: '1',
 })
 export class AuthController {
-  constructor(private authService: AuthService) { }
+  constructor(private authService: AuthService) {}
 
   @ApiOperation({
     summary: 'Login the current user',
@@ -67,6 +68,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get the current user',
     operationId: 'getProfile',

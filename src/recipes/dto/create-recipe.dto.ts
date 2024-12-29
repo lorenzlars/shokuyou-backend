@@ -1,6 +1,5 @@
 import { IsString, IsNotEmpty } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Optional } from '@nestjs/common';
 
 export class CreateRecipeDto {
   @ApiProperty({
@@ -18,4 +17,11 @@ export class CreateRecipeDto {
   })
   @IsString()
   description?: string;
+
+  @ApiProperty({
+    description: 'Base64 Image of the recipe',
+    required: false,
+  })
+  @IsString()
+  image?: string;
 }
