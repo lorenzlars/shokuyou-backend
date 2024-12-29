@@ -1,14 +1,10 @@
-import {
-  ConflictException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from '../users/dto/create-user.dto';
-import { LoginUserDto } from './dto/login-user.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
+import { User } from 'src/users/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -17,10 +13,10 @@ export class AuthService {
     private jwtService: JwtService,
   ) { }
 
-  async validateUser(username: string, pass: string) {
+  async validateUser(username: string, password: string) {
     const user = await this.usersService.findOne(username);
 
-    if (user && (await bcrypt.compare(pass, user.password))) {
+    if (user && (await bcrypt.compare(password, user.password))) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...result } = user;
 
@@ -30,21 +26,11 @@ export class AuthService {
     return null;
   }
 
-  async login(loginUserDto: LoginUserDto): Promise<LoginResponseDto> {
-    const user = await this.validateUser(
-      loginUserDto.username,
-      loginUserDto.password,
-    );
-
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+  async login(user: User): Promise<LoginResponseDto> {
+    const payload = { username: user.username, sub: user.id };
 
     return {
-      accessToken: this.jwtService.sign({
-        username: user.username,
-        sub: user.id,
-      }),
+      accessToken: this.jwtService.sign(payload),
     };
   }
 
@@ -62,6 +48,7 @@ export class AuthService {
   }
 
   async getProfile(id: string) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...user } = await this.usersService.findOne(id);
 
     return user;

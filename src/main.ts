@@ -8,6 +8,8 @@ import {
 } from '@nestjs/swagger';
 import { json, urlencoded } from 'express';
 
+import 'reflect-metadata';
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
@@ -28,6 +30,16 @@ async function bootstrap() {
       .setTitle('Shokuyou')
       .setDescription('The Shokuyou API description')
       .setVersion('0.0.1')
+      .addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          description:
+            'Geben Sie Ihren JWT-Token ein, um die API zu authentifizieren',
+        },
+        'access-token',
+      )
       .build();
     const options: SwaggerDocumentOptions = {
       operationIdFactory: (controllerKey: string, methodKey: string) =>
@@ -35,7 +47,22 @@ async function bootstrap() {
     };
     const document = SwaggerModule.createDocument(app, config, options);
 
-    SwaggerModule.setup('docs', app, document);
+    SwaggerModule.setup('docs', app, document, {
+      swaggerOptions: {
+        authAction: {
+          'access-token': {
+            name: 'Bearer',
+            schema: {
+              type: 'http',
+              in: 'header',
+              scheme: 'bearer',
+              bearerFormat: 'JWT',
+            },
+            value: 'dummy_access_token',
+          },
+        },
+      },
+    });
   }
 
   await app.listen(process.env.PORT ?? 3000);

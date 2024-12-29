@@ -8,6 +8,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import {
+  ApiBasicAuth,
   ApiBearerAuth,
   ApiBody,
   ApiConflictResponse,
@@ -19,11 +20,12 @@ import {
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { CreateUserDto } from '../users/dto/create-user.dto';
-import { LoginUserDto } from './dto/login-user.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { User } from '../users/user.decorator';
 import { User as UserEntity } from '../users/user.entity';
 import { UserResponseDto } from './dto/user-response.dto';
+import { LocalAuthGuard } from './local-auth.guard';
+import { LoginUserDto } from './dto/login-user.dto';
 
 @ApiTags('auth')
 @Controller({
@@ -31,11 +33,16 @@ import { UserResponseDto } from './dto/user-response.dto';
   version: '1',
 })
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
+  @UseGuards(LocalAuthGuard)
+  @ApiBasicAuth()
   @ApiOperation({
     summary: 'Login the current user',
-    operationId: 'postLogin',
+    operationId: 'userLogin',
+  })
+  @ApiBody({
+    type: LoginUserDto,
   })
   @ApiOkResponse({
     description: 'Successfully logged in',
@@ -43,13 +50,13 @@ export class AuthController {
   })
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  async login(@Body() loginUserDto: LoginUserDto) {
-    return await this.authService.login(loginUserDto);
+  async login(@User() user: UserEntity) {
+    return await this.authService.login(user);
   }
 
   @ApiOperation({
     summary: 'Register a new user',
-    operationId: 'postRegister',
+    operationId: 'userRegister',
   })
   @ApiBody({
     description: 'Daten zur Erstellung eines neuen Benutzers',
@@ -68,7 +75,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiBearerAuth('access-token')
   @ApiOperation({
     summary: 'Get the current user',
     operationId: 'getProfile',

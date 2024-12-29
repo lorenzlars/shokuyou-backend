@@ -6,6 +6,7 @@ import { CreateRecipeDto } from './dto/create-recipe.dto';
 import { UpdateRecipeDto } from './dto/update-recipe.dto';
 import * as cloudinary from 'cloudinary';
 import { ConfigService } from '@nestjs/config';
+import { PaginationDto, SortOrder } from './dto/pagination.dto';
 
 @Injectable()
 export class RecipesService {
@@ -46,14 +47,38 @@ export class RecipesService {
     return uploadResult;
   }
 
-  async findAll() {
-    return this.recipeRepository.find();
+  private createOrderQuery(filter: PaginationDto) {
+    const order: any = {};
+
+    if (filter.orderBy) {
+      order[filter.orderBy] = filter.sortOrder;
+
+      return order;
+    }
+
+    order.name = SortOrder.DESC;
+
+    return order;
   }
 
-  findOne(id: string) {
-    return this.recipeRepository.findOne({
+  async findAll(filter: PaginationDto) {
+    return await this.recipeRepository.findAndCount({
+      order: this.createOrderQuery(filter),
+      skip: (filter.page - 1) * (filter.pageSize + 1),
+      take: filter.pageSize,
+    });
+  }
+
+  async findOne(id: string) {
+    const recipe = await this.recipeRepository.findOne({
       where: { id },
     });
+
+    if (!recipe) {
+      throw new NotFoundException();
+    }
+
+    return recipe;
   }
 
   async addRecipe(createRecipeDto: CreateRecipeDto) {
@@ -65,7 +90,7 @@ export class RecipesService {
 
     const { url } = await this.uploadImage(image);
 
-    return this.recipeRepository.save({ ...recipe, url });
+    return await this.recipeRepository.save({ ...recipe, url });
   }
 
   async updateRecipe(id: string, updateRecipeDto: UpdateRecipeDto) {
@@ -78,21 +103,29 @@ export class RecipesService {
     const { image, ...updatedRecipe } = updateRecipeDto;
 
     if (image === undefined) {
-      return this.recipeRepository.save({ ...recipe, ...updatedRecipe });
+      return await this.recipeRepository.save({ ...recipe, ...updatedRecipe });
     }
 
     if (image === null) {
       // TODO: Delete image from cloudinary
 
-      return this.recipeRepository.save({ ...recipe, ...updatedRecipe });
+      return await this.recipeRepository.save({ ...recipe, ...updatedRecipe });
     }
 
     const { url } = await this.uploadImage(image);
 
-    return this.recipeRepository.save({ ...recipe, ...updatedRecipe, url });
+    return await this.recipeRepository.save({
+      ...recipe,
+      ...updatedRecipe,
+      url,
+    });
   }
 
   async removeRecipe(id: string) {
-    await this.recipeRepository.delete(id);
+    const result = await this.recipeRepository.delete(id);
+
+    if (result.affected === 0) {
+      throw new NotFoundException();
+    }
   }
 }
