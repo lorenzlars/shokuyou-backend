@@ -1,7 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PaginationDto } from './pagination.dto';
+import { PaginationFilterDto } from './pagination-filter.dto';
 
-export class PaginationResponseDto<T extends object> extends PaginationDto {
+export class PaginationResponseDto<
+  T extends object,
+> extends PaginationFilterDto {
   @ApiProperty({
     description: 'The content of the page',
   })

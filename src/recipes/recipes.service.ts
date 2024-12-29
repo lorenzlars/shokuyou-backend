@@ -6,7 +6,10 @@ import { CreateRecipeDto } from './dto/create-recipe.dto';
 import { UpdateRecipeDto } from './dto/update-recipe.dto';
 import * as cloudinary from 'cloudinary';
 import { ConfigService } from '@nestjs/config';
-import { PaginationDto, SortOrder } from './dto/pagination.dto';
+import {
+  PaginationFilterDto,
+  SortOrder,
+} from '../common/dto/pagination-filter.dto';
 
 @Injectable()
 export class RecipesService {
@@ -47,7 +50,7 @@ export class RecipesService {
     return uploadResult;
   }
 
-  private createOrderQuery(filter: PaginationDto) {
+  private createOrderQuery(filter: PaginationFilterDto) {
     const order: any = {};
 
     if (filter.orderBy) {
@@ -61,7 +64,7 @@ export class RecipesService {
     return order;
   }
 
-  async findAll(filter: PaginationDto) {
+  async findAll(filter: PaginationFilterDto) {
     return await this.recipeRepository.findAndCount({
       order: this.createOrderQuery(filter),
       skip: (filter.page - 1) * (filter.pageSize + 1),

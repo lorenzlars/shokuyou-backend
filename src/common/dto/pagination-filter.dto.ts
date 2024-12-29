@@ -7,12 +7,7 @@ export enum SortOrder {
   DESC = 'DESC',
 }
 
-export interface Generic {
-  name: string;
-  age: number;
-}
-
-export class PaginationDto {
+export class PaginationFilterDto {
   @ApiProperty({
     description: 'The page number',
     default: 1,

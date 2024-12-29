@@ -13,27 +13,25 @@ import { RecipesService } from './recipes.service';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
-  ApiExtraModels,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiQuery,
   ApiSecurity,
   ApiTags,
-  getSchemaPath,
 } from '@nestjs/swagger';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
 import { UpdateRecipeDto } from './dto/update-recipe.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Recipe } from './recipe.entity';
-import { Generic, PaginationDto } from './dto/pagination.dto';
-import { PaginationResponseDto } from './dto/pagination-response.dto';
+import { PaginationFilterDto } from '../common/dto/pagination-filter.dto';
+import { PaginationResponseDto } from '../common/dto/pagination-response.dto';
+import { ApiPaginatedResponse } from '../common/decorators/apiPaginationResponse';
 
 @ApiTags('recipes')
 @ApiSecurity('access-token')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@ApiExtraModels(PaginationResponseDto)
 @Controller({
   path: 'recipes',
   version: '1',
@@ -74,28 +72,10 @@ export class RecipesController {
     summary: 'Get all recipes with pagination',
     operationId: 'getRecipes',
   })
-  @ApiOkResponse({
-    description: 'Successfully retrieved the recipes',
-    schema: {
-      allOf: [
-        { $ref: getSchemaPath(PaginationResponseDto) },
-        {
-          properties: {
-            content: {
-              type: 'array',
-              items: { $ref: getSchemaPath(Recipe) },
-            },
-          },
-        },
-      ],
-    },
-  })
-  @ApiQuery({
-    type: PaginationDto,
-  })
+  @ApiPaginatedResponse(Recipe)
   @Get()
   async getRecipes(
-    @Query() filter: PaginationDto & Generic,
+    @Query() filter: PaginationFilterDto,
   ): Promise<PaginationResponseDto<Recipe>> {
     const [recipes, total] = await this.recipesService.findAll(filter);
 
