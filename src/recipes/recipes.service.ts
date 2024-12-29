@@ -2,7 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Recipe } from './recipe.entity';
-import { CreateRecipeDto } from './dto/create-recip.dto';
+import { CreateRecipeDto } from './dto/create-recipe.dto';
 import { UpdateRecipeDto } from './dto/update-recipe.dto';
 
 @Injectable()
@@ -35,7 +35,7 @@ export class RecipesService {
       throw new NotFoundException();
     }
 
-    return this.recipeRepository.save(updateRecipeDto);
+    return this.recipeRepository.save({ ...recipe, ...updateRecipeDto });
   }
 
   async removeRecipe(id: string) {

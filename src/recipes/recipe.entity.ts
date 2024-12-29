@@ -21,6 +21,6 @@ export class Recipe {
     description: 'The description of the recipe',
     example: 'A classic Italian pasta dish',
   })
-  @Column()
-  description: string;
+  @Column({ nullable: true })
+  description?: string;
 }

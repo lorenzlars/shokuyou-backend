@@ -16,7 +16,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { CreateRecipeDto } from './dto/create-recip.dto';
+import { CreateRecipeDto } from './dto/create-recipe.dto';
 import { UpdateRecipeDto } from './dto/update-recipe.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Recipe } from './recipe.entity';
@@ -29,7 +29,7 @@ import { Recipe } from './recipe.entity';
   version: '1',
 })
 export class RecipesController {
-  constructor(private readonly recipesService: RecipesService) { }
+  constructor(private readonly recipesService: RecipesService) {}
 
   @ApiOperation({
     summary: 'Add a new recipes',

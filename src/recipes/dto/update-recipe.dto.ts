@@ -14,8 +14,8 @@ export class UpdateRecipeDto {
   @ApiProperty({
     description: 'Der eindeutige Benutzername',
     example: 'johndoe',
+    required: false,
   })
-  @IsNotEmpty()
   @IsString()
-  description: string;
+  description?: string;
 }

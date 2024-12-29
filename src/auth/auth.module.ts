@@ -20,7 +20,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         configService: ConfigService,
       ): Promise<JwtModuleOptions> => ({
         secret: configService.get<string>('SECRET'),
-        signOptions: { expiresIn: '60s' },
+        signOptions: { expiresIn: '60m' },
       }),
     }),
   ],

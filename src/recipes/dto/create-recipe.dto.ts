@@ -1,5 +1,6 @@
 import { IsString, IsNotEmpty } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Optional } from '@nestjs/common';
 
 export class CreateRecipeDto {
   @ApiProperty({
@@ -13,7 +14,8 @@ export class CreateRecipeDto {
   @ApiProperty({
     description: 'Description of the recipe',
     example: 'A classic Italian pasta dish',
+    required: false,
   })
   @IsString()
-  description: string;
+  description?: string;
 }
