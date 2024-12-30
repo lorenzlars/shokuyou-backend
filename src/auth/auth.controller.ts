@@ -33,7 +33,7 @@ import { LoginUserDto } from './dto/login-user.dto';
   version: '1',
 })
 export class AuthController {
-  constructor(private authService: AuthService) { }
+  constructor(private authService: AuthService) {}
 
   @UseGuards(LocalAuthGuard)
   @ApiBasicAuth()

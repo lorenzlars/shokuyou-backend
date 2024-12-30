@@ -16,7 +16,6 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiQuery,
   ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
@@ -37,7 +36,7 @@ import { ApiPaginatedResponse } from '../common/decorators/apiPaginationResponse
   version: '1',
 })
 export class RecipesController {
-  constructor(private readonly recipesService: RecipesService) { }
+  constructor(private readonly recipesService: RecipesService) {}
 
   @ApiOperation({
     summary: 'Add a new recipes',

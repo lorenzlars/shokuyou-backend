@@ -67,7 +67,7 @@ export class RecipesService {
   async findAll(filter: PaginationFilterDto) {
     return await this.recipeRepository.findAndCount({
       order: this.createOrderQuery(filter),
-      skip: (filter.page - 1) * (filter.pageSize + 1),
+      skip: (filter.page - 1) * filter.pageSize,
       take: filter.pageSize,
     });
   }

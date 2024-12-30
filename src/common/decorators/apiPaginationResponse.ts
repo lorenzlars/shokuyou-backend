@@ -1,4 +1,10 @@
-import { applyDecorators, Type } from '@nestjs/common';
+import {
+  applyDecorators,
+  ClassSerializerInterceptor,
+  SerializeOptions,
+  Type,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ApiExtraModels } from '@nestjs/swagger';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { getSchemaPath } from '@nestjs/swagger';
@@ -10,6 +16,8 @@ export const ApiPaginatedResponse = <TModel extends Type<any>>(
 ) => {
   return applyDecorators(
     ApiExtraModels(PaginationResponseDto, model),
+    UseInterceptors(ClassSerializerInterceptor),
+    SerializeOptions({ type: PaginationResponseDto<TModel> }),
     ApiOkResponse({
       schema: {
         allOf: [
