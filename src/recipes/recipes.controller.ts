@@ -141,6 +141,8 @@ export class RecipesController {
   })
   @Delete(':id')
   async deleteRecipe(@Param('id', new ParseUUIDPipe()) id: string) {
+    // TODO: Delete image if it exists
+
     await this.recipesService.removeRecipe(id);
   }
 
