@@ -183,13 +183,12 @@ export class RecipesController {
     )
     file: Express.Multer.File,
   ): Promise<ResponseRecipeDto> {
+    // TODO: Use transactions to ensure that the image is only added or deleted if the recipe is updated successfully
     const recipe = await this.recipesService.findOne(id);
 
-    if (!file) {
-      throw new NotAcceptableException();
+    if (recipe.image) {
+      await this.imagesService.removeImage(recipe.image.id);
     }
-
-    // TODO: Check if the recipe already has an image and remove it
 
     const image = await this.imagesService.addImage(file);
     const { image: recipeImage, ...updatedRecipe } =

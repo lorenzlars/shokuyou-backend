@@ -25,6 +25,18 @@ export class ImagesService {
     });
   }
 
+  async findOne(id: string): Promise<Image> {
+    const image = await this.imageRepository.findOne({
+      where: { id },
+    });
+
+    if (!image) {
+      throw new NotFoundException();
+    }
+
+    return image;
+  }
+
   async addImage(file: Express.Multer.File): Promise<Image> {
     const uploadResponse = await new Promise<cloudinary.UploadApiResponse>(
       (resolve, reject) => {
