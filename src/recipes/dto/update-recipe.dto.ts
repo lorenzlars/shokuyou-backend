@@ -18,11 +18,4 @@ export class UpdateRecipeDto {
   })
   @IsString()
   description?: string;
-
-  @ApiProperty({
-    description: 'Base64 Image of the recipe',
-    required: false,
-  })
-  @IsString()
-  image?: string;
 }

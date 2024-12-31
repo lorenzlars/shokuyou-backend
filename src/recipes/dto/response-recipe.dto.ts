@@ -1,13 +1,16 @@
-import { IsString, IsNotEmpty } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateRecipeDto {
+export class ResponseRecipeDto {
   @ApiProperty({
     description: 'Name of the recipe',
     example: 'Spaghetti Carbonara',
   })
-  @IsString()
-  @IsNotEmpty()
+  id: string;
+
+  @ApiProperty({
+    description: 'Name of the recipe',
+    example: 'Spaghetti Carbonara',
+  })
   name: string;
 
   @ApiProperty({
@@ -15,6 +18,11 @@ export class CreateRecipeDto {
     example: 'A classic Italian pasta dish',
     required: false,
   })
-  @IsString()
   description?: string;
+
+  @ApiProperty({
+    description: 'The image url the recipe image',
+    required: false,
+  })
+  imageUrl?: string;
 }

@@ -6,6 +6,7 @@ import { Recipe } from './recipes/recipe.entity';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { User } from './users/user.entity';
+import { Image } from './images/image.entity';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { User } from './users/user.entity';
       useFactory: async (configService) => ({
         type: 'postgres',
         url: configService.get('DATABASE_URL'),
-        entities: [User, Recipe],
+        entities: [User, Recipe, Image],
         synchronize: true,
         ...(process.env.MODE === 'development'
           ? {}

@@ -1,5 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  JoinColumn,
+  OneToOne,
+} from 'typeorm';
+import { Image } from '../images/image.entity';
+import { Optional } from '@nestjs/common';
 
 @Entity()
 export class Recipe {
@@ -25,8 +33,11 @@ export class Recipe {
   description?: string;
 
   @ApiProperty({
-    description: 'The URL of the recipe image',
+    description: 'The image of the recipe',
+    type: Image,
   })
-  @Column({ nullable: true })
-  url?: string;
+  @OneToOne(() => Image)
+  @JoinColumn()
+  @Optional()
+  image?: Image;
 }
