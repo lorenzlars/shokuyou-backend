@@ -45,7 +45,7 @@ export class ImagesService {
             {
               resource_type: 'image',
               use_filename: true,
-              eager: { width: 100, height: 100 },
+              transformation: { width: 100, height: 100, crop: 'limit' },
             },
             function (error, result) {
               if (error) {
