@@ -45,7 +45,7 @@ export class ImagesService {
             {
               resource_type: 'image',
               use_filename: true,
-              transformation: { width: 100, height: 100, crop: 'limit' },
+              transformation: { width: 250, height: 250, crop: 'limit' },
             },
             function (error, result) {
               if (error) {

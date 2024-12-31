@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 
 export class ResponseRecipeDto {
   @ApiProperty({
@@ -18,6 +19,7 @@ export class ResponseRecipeDto {
     example: 'A classic Italian pasta dish',
     required: false,
   })
+  @Transform(({ value }) => value ?? undefined)
   description?: string;
 
   @ApiProperty({

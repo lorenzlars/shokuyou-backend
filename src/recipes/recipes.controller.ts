@@ -16,6 +16,8 @@ import {
   MaxFileSizeValidator,
   FileTypeValidator,
   ParseUUIDPipe,
+  ClassSerializerInterceptor,
+  SerializeOptions,
 } from '@nestjs/common';
 import { RecipesService } from './recipes.service';
 import {
@@ -78,6 +80,9 @@ export class RecipesController {
   @ApiNotFoundResponse({
     description: 'Recipe not found',
   })
+  // TODO: Create a custom decorator for this two decorators, they are used for transforming the response if the returned object is constructed manually
+  @UseInterceptors(ClassSerializerInterceptor)
+  @SerializeOptions({ type: ResponseRecipeDto })
   @Get(':id')
   async getRecipe(
     @Param('id', new ParseUUIDPipe()) id: string,
