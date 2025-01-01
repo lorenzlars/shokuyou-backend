@@ -101,6 +101,7 @@ export class ImagesService {
     await this.deleteImageFile(image.publicId);
 
     return await this.imageRepository.save({
+      ...image,
       publicId: uploadResponse.public_id,
       url: uploadResponse.url,
     });
