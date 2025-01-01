@@ -2,9 +2,9 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto } from '../users/dto/create-user.dto';
-import { LoginResponseDto } from './dto/login-response.dto';
-import { User } from 'src/users/user.entity';
+import { AuthResponseDto } from './dto/authResponse.dto';
+import { RequestUser } from '../users/user.decorator';
+import { AuthRequestDto } from './dto/authRequest.dto';
 
 @Injectable()
 export class AuthService {
@@ -26,7 +26,7 @@ export class AuthService {
     return null;
   }
 
-  async login(user: User): Promise<LoginResponseDto> {
+  async login(user: RequestUser): Promise<AuthResponseDto> {
     const payload = { username: user.username, sub: user.id };
 
     return {
@@ -34,23 +34,20 @@ export class AuthService {
     };
   }
 
-  async register(createUserDto: CreateUserDto) {
-    if (await this.usersService.findOne(createUserDto.username)) {
+  async register(authRequestDto: AuthRequestDto) {
+    if (await this.usersService.findOne(authRequestDto.username)) {
       throw new ConflictException('User already exists');
     }
 
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+    const hashedPassword = await bcrypt.hash(authRequestDto.password, 10);
 
     return await this.usersService.create({
-      ...createUserDto,
+      ...authRequestDto,
       password: hashedPassword,
     });
   }
 
   async getProfile(id: string) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...user } = await this.usersService.findOne(id);
-
-    return user;
+    return await this.usersService.findOne(id);
   }
 }

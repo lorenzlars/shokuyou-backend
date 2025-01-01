@@ -13,10 +13,7 @@ import {
   MaxFileSizeValidator,
   FileTypeValidator,
   ParseUUIDPipe,
-  ClassSerializerInterceptor,
-  SerializeOptions,
   Put,
-  ConflictException,
 } from '@nestjs/common';
 import { RecipesService } from './recipes.service';
 import {
@@ -30,16 +27,15 @@ import {
   ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
-import { CreateRecipeDto } from './dto/create-recipe.dto';
-import { UpdateRecipeDto } from './dto/update-recipe.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { Recipe } from './recipe.entity';
-import { PaginationFilterDto } from '../common/dto/pagination-filter.dto';
-import { PaginationResponseDto } from '../common/dto/pagination-response.dto';
+import { RecipeEntity } from './recipe.entity';
+import { PaginationRequestFilterQueryDto } from '../common/dto/paginationRequestFilterQueryDto';
 import { ApiPaginatedResponse } from '../common/decorators/apiPaginationResponse';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ImagesService } from '../images/images.service';
-import { ResponseRecipeDto } from './dto/response-recipe.dto';
+import { RecipeResponseDto } from './dto/recipeResponse.dto';
+import { RecipeRequestDto } from './dto/recipeRequest.dto';
+import { PaginationResponseDto } from '../common/dto/paginationResponse.dto';
+import { TransformResponse } from '../common/interceptors/responseTransformInterceptor';
 
 @ApiTags('recipes')
 @ApiSecurity('access-token')
@@ -50,10 +46,7 @@ import { ResponseRecipeDto } from './dto/response-recipe.dto';
   version: '1',
 })
 export class RecipesController {
-  constructor(
-    private readonly recipesService: RecipesService,
-    private readonly imagesService: ImagesService,
-  ) {}
+  constructor(private readonly recipesService: RecipesService) {}
 
   @ApiOperation({
     summary: 'Add a new recipes',
@@ -61,11 +54,12 @@ export class RecipesController {
   })
   @ApiCreatedResponse({
     description: 'Recipe successfully created',
-    type: Recipe,
+    type: RecipeEntity,
   })
+  @TransformResponse(RecipeResponseDto)
   @Post()
-  async addRecipe(@Body() createRecipeDto: CreateRecipeDto) {
-    return await this.recipesService.addRecipe(createRecipeDto);
+  async addRecipe(@Body() recipeRequestDto: RecipeRequestDto) {
+    return await this.recipesService.createRecipe(recipeRequestDto);
   }
 
   @ApiOperation({
@@ -74,42 +68,30 @@ export class RecipesController {
   })
   @ApiOkResponse({
     description: 'Successfully retrieved the recipe',
-    type: ResponseRecipeDto,
+    type: RecipeResponseDto,
   })
   @ApiNotFoundResponse({
     description: 'Recipe not found',
   })
-  // TODO: Create a custom decorator for this two decorators, they are used for transforming the response if the returned object is constructed manually
-  @UseInterceptors(ClassSerializerInterceptor)
-  @SerializeOptions({ type: ResponseRecipeDto })
+  @TransformResponse(RecipeResponseDto)
   @Get(':id')
   async getRecipe(
     @Param('id', new ParseUUIDPipe()) id: string,
-  ): Promise<ResponseRecipeDto> {
-    const { image, ...recipe } = await this.recipesService.findOne(id);
-
-    return {
-      ...recipe,
-      imageUrl: image?.url,
-    };
+  ): Promise<RecipeResponseDto> {
+    return await this.recipesService.getOne(id);
   }
 
   @ApiOperation({
     summary: 'Get all recipes with pagination',
     operationId: 'getRecipes',
   })
-  @ApiPaginatedResponse(ResponseRecipeDto)
+  @ApiPaginatedResponse(RecipeResponseDto)
+  @TransformResponse(PaginationResponseDto<RecipeResponseDto>)
   @Get()
   async getRecipes(
-    @Query() filter: PaginationFilterDto,
-  ): Promise<PaginationResponseDto<ResponseRecipeDto>> {
-    const [recipes, total] = await this.recipesService.findAll(filter);
-
-    return {
-      ...filter,
-      content: recipes,
-      total,
-    };
+    @Query() filter: PaginationRequestFilterQueryDto,
+  ): Promise<PaginationResponseDto<RecipeResponseDto>> {
+    return await this.recipesService.getPage(filter);
   }
 
   @ApiOperation({
@@ -119,28 +101,18 @@ export class RecipesController {
   })
   @ApiOkResponse({
     description: 'Successfully updated the recipe',
-    type: Recipe,
+    type: RecipeEntity,
   })
   @ApiNotFoundResponse({
     description: 'Recipe not found',
   })
-  // TODO: Create a custom decorator for this two decorators, they are used for transforming the response if the returned object is constructed manually
-  @UseInterceptors(ClassSerializerInterceptor)
-  @SerializeOptions({ type: ResponseRecipeDto })
+  @TransformResponse(RecipeResponseDto)
   @Put(':id')
   async updateRecipe(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() updateRecipeDto: UpdateRecipeDto,
-  ) {
-    const { image, ...recipe } = await this.recipesService.updateRecipe(
-      id,
-      updateRecipeDto,
-    );
-
-    return {
-      ...recipe,
-      imageUrl: image?.url,
-    };
+    @Body() recipeRequestDto: RecipeRequestDto,
+  ): Promise<RecipeResponseDto> {
+    return await this.recipesService.updateRecipe(id, recipeRequestDto);
   }
 
   @ApiOperation({
@@ -156,8 +128,6 @@ export class RecipesController {
   })
   @Delete(':id')
   async deleteRecipe(@Param('id', new ParseUUIDPipe()) id: string) {
-    // TODO: Delete image if it exists
-
     await this.recipesService.removeRecipe(id);
   }
 
@@ -180,12 +150,13 @@ export class RecipesController {
   })
   @ApiOkResponse({
     description: 'Successfully uploaded the image',
-    type: ResponseRecipeDto,
+    type: RecipeResponseDto,
   })
   @ApiNotFoundResponse({
     description: 'No Recipe found to add the image to',
   })
   @ApiConsumes('multipart/form-data')
+  @TransformResponse(RecipeResponseDto)
   @Post(':id/image')
   @UseInterceptors(FileInterceptor('file'))
   async uploadImage(
@@ -199,27 +170,8 @@ export class RecipesController {
       }),
     )
     file: Express.Multer.File,
-  ): Promise<ResponseRecipeDto> {
-    // TODO: Use transactions to ensure that the image is only added or deleted if the recipe is updated successfully
-    const recipe = await this.recipesService.findOne(id);
-
-    if (recipe.image) {
-      throw new ConflictException(
-        'Recipe already has an image, only one image is allowed. Use PUT or DELETE to update the image.',
-      );
-    }
-
-    const image = await this.imagesService.addImage(file);
-    const { image: recipeImage, ...updatedRecipe } =
-      await this.recipesService.updateRecipe(id, {
-        ...recipe,
-        image,
-      });
-
-    return {
-      ...updatedRecipe,
-      imageUrl: recipeImage.url,
-    };
+  ): Promise<RecipeResponseDto> {
+    return await this.recipesService.addImage(id, file);
   }
 
   @ApiOperation({
@@ -241,12 +193,13 @@ export class RecipesController {
   })
   @ApiOkResponse({
     description: 'Successfully uploaded the image',
-    type: ResponseRecipeDto,
+    type: RecipeResponseDto,
   })
   @ApiNotFoundResponse({
     description: 'No Recipe found to update the image at',
   })
   @ApiConsumes('multipart/form-data')
+  @TransformResponse(RecipeResponseDto)
   @Put(':id/image')
   @UseInterceptors(FileInterceptor('file'))
   async updateImage(
@@ -260,15 +213,8 @@ export class RecipesController {
       }),
     )
     file: Express.Multer.File,
-  ): Promise<ResponseRecipeDto> {
-    // TODO: Use transactions to ensure that the image is only added or deleted if the recipe is updated successfully
-    const { image, ...recipe } = await this.recipesService.findOne(id);
-    await this.imagesService.updateImage(image.id, file);
-
-    return {
-      ...recipe,
-      imageUrl: image.url,
-    };
+  ): Promise<RecipeResponseDto> {
+    return await this.recipesService.updateImage(id, file);
   }
 
   @ApiOperation({
@@ -284,10 +230,6 @@ export class RecipesController {
   })
   @Delete(':id/image')
   async deleteImage(@Param('id', new ParseUUIDPipe()) id: string) {
-    const { image, ...recipe } = await this.recipesService.findOne(id);
-
-    await this.recipesService.updateRecipe(id, { ...recipe, image: null });
-
-    return await this.imagesService.removeImage(image.id);
+    await this.recipesService.removeImage(id);
   }
 }

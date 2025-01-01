@@ -1,20 +1,20 @@
-import { IsString, IsNotEmpty } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsString } from 'class-validator';
 
-export class CreateRecipeDto {
+export class RecipeRequestDto {
   @ApiProperty({
     description: 'Name of the recipe',
     example: 'Spaghetti Carbonara',
   })
   @IsString()
-  @IsNotEmpty()
   name: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Description of the recipe',
     example: 'A classic Italian pasta dish',
     required: false,
   })
   @IsString()
+  @IsOptional()
   description?: string;
 }

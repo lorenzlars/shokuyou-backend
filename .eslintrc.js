@@ -5,10 +5,11 @@ module.exports = {
     tsconfigRootDir: __dirname,
     sourceType: 'module',
   },
-  plugins: ['@typescript-eslint/eslint-plugin'],
+  plugins: ['@typescript-eslint/eslint-plugin', '@darraghor/nestjs-typed'],
   extends: [
     'plugin:@typescript-eslint/recommended',
     'plugin:prettier/recommended',
+    'plugin:@darraghor/nestjs-typed/recommended',
   ],
   root: true,
   env: {
@@ -21,5 +22,9 @@ module.exports = {
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
+
+    // OpenAPI
+    // Disabled because of ApiPaginatedResponse
+    '@darraghor/nestjs-typed/api-method-should-specify-api-response': 'off',
   },
 };

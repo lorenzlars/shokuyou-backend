@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { VersioningType } from '@nestjs/common';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
 import {
   DocumentBuilder,
   SwaggerDocumentOptions,
@@ -20,6 +20,18 @@ async function bootstrap() {
   app.enableVersioning({
     type: VersioningType.URI,
   });
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      forbidUnknownValues: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+    }),
+  );
 
   if (process.env.MODE === 'development') {
     const config = new DocumentBuilder()
@@ -63,7 +75,5 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 3000);
 }
-
-console.log(process.env.MODE);
 
 bootstrap();

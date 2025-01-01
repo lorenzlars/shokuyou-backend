@@ -3,7 +3,7 @@ import * as cloudinary from 'cloudinary';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Image } from './image.entity';
+import { ImageEntity } from './image.entity';
 
 @Injectable()
 export class ImagesService {
@@ -12,8 +12,8 @@ export class ImagesService {
   constructor(
     private configService: ConfigService,
 
-    @InjectRepository(Image)
-    private imageRepository: Repository<Image>,
+    @InjectRepository(ImageEntity)
+    private imageRepository: Repository<ImageEntity>,
   ) {
     const { username, password } = new URL(configService.get('CLOUDINARY_URL'));
 
@@ -66,7 +66,7 @@ export class ImagesService {
     });
   }
 
-  async findOne(id: string): Promise<Image> {
+  async findOne(id: string): Promise<ImageEntity> {
     const image = await this.imageRepository.findOne({
       where: { id },
     });
@@ -78,7 +78,7 @@ export class ImagesService {
     return image;
   }
 
-  async addImage(file: Express.Multer.File): Promise<Image> {
+  async addImage(file: Express.Multer.File): Promise<ImageEntity> {
     const uploadResponse = await this.uploadImageFile(file);
 
     return await this.imageRepository.save({

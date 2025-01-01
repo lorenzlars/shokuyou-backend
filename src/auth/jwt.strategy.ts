@@ -1,7 +1,7 @@
 import { Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, Logger } from '@nestjs/common';
-import { User } from 'src/users/user.entity';
+import { UserEntity } from 'src/users/user.entity';
 import { JwtService } from '@nestjs/jwt';
 import { DUMMY_BEARER_TOKEN } from './constants';
 
@@ -38,7 +38,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: any): Promise<Omit<User, 'password'>> {
+  async validate(payload: any): Promise<Omit<UserEntity, 'password'>> {
     return { id: payload.sub, username: payload.username };
   }
 }

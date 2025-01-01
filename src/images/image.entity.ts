@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity()
-export class Image {
+@Entity({ name: 'images' })
+export class ImageEntity {
   @ApiProperty({
     description: 'The unique identifier of the recipe',
     example: '123e4567-e89b-12d3-a456-426614174000',

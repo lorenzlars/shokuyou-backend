@@ -2,11 +2,14 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RecipesModule } from './recipes/recipes.module';
-import { Recipe } from './recipes/recipe.entity';
+import { RecipeEntity } from './recipes/recipe.entity';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-import { User } from './users/user.entity';
-import { Image } from './images/image.entity';
+import { UserEntity } from './users/user.entity';
+import { ImageEntity } from './images/image.entity';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { ResponseTransformInterceptor } from './common/interceptors/responseTransformInterceptor';
+import { RemoveEmptyInterceptor } from './common/interceptors/removeEmptyInterceptor';
 
 @Module({
   imports: [
@@ -19,7 +22,7 @@ import { Image } from './images/image.entity';
       useFactory: async (configService) => ({
         type: 'postgres',
         url: configService.get('DATABASE_URL'),
-        entities: [User, Recipe, Image],
+        entities: [UserEntity, RecipeEntity, ImageEntity],
         synchronize: true,
         ...(process.env.MODE === 'development'
           ? {}
@@ -34,6 +37,16 @@ import { Image } from './images/image.entity';
     RecipesModule,
     AuthModule,
     UsersModule,
+  ],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ResponseTransformInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RemoveEmptyInterceptor,
+    },
   ],
 })
 export class AppModule {}

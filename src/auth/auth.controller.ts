@@ -2,10 +2,10 @@ import {
   Controller,
   Post,
   UseGuards,
-  Get,
   Body,
   HttpCode,
   HttpStatus,
+  Get,
 } from '@nestjs/common';
 import {
   ApiBasicAuth,
@@ -19,13 +19,12 @@ import {
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { CreateUserDto } from '../users/dto/create-user.dto';
-import { LoginResponseDto } from './dto/login-response.dto';
-import { User } from '../users/user.decorator';
-import { User as UserEntity } from '../users/user.entity';
-import { UserResponseDto } from './dto/user-response.dto';
+import { AuthResponseDto } from './dto/authResponse.dto';
+import { RequestUser, User } from '../users/user.decorator';
 import { LocalAuthGuard } from './local-auth.guard';
-import { LoginUserDto } from './dto/login-user.dto';
+import { AuthRequestDto } from './dto/authRequest.dto';
+import { UserResponseDto } from '../users/dto/userResponse.dto';
+import { TransformResponse } from '../common/interceptors/responseTransformInterceptor';
 
 @ApiTags('auth')
 @Controller({
@@ -42,15 +41,16 @@ export class AuthController {
     operationId: 'userLogin',
   })
   @ApiBody({
-    type: LoginUserDto,
+    type: AuthRequestDto,
   })
   @ApiOkResponse({
     description: 'Successfully logged in',
-    type: LoginResponseDto,
+    type: AuthResponseDto,
   })
+  @TransformResponse(AuthResponseDto)
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  async login(@User() user: UserEntity) {
+  async login(@User() user: RequestUser): Promise<AuthResponseDto> {
     return await this.authService.login(user);
   }
 
@@ -60,7 +60,7 @@ export class AuthController {
   })
   @ApiBody({
     description: 'Daten zur Erstellung eines neuen Benutzers',
-    type: CreateUserDto,
+    type: AuthRequestDto,
   })
   @ApiCreatedResponse({
     description: 'User successfully registered',
@@ -70,8 +70,8 @@ export class AuthController {
   })
   @HttpCode(HttpStatus.CREATED)
   @Post('register')
-  async register(@Body() createUserDto: CreateUserDto) {
-    await this.authService.register(createUserDto);
+  async register(@Body() authRequestDto: AuthRequestDto) {
+    await this.authService.register(authRequestDto);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -84,8 +84,9 @@ export class AuthController {
     description: 'Successfully retrieved the current user',
     type: UserResponseDto,
   })
+  @TransformResponse(UserResponseDto)
   @Get('profile')
-  async getProfile(@User() user: UserEntity) {
-    await this.authService.getProfile(user.id);
+  async getProfile(@User() user: RequestUser): Promise<UserResponseDto> {
+    return await this.authService.getProfile(user.id);
   }
 }

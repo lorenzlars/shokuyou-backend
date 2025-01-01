@@ -1,23 +1,42 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Recipe } from './recipe.entity';
 import {
-  PaginationFilterDto,
-  SortOrder,
-} from '../common/dto/pagination-filter.dto';
-import { ResponseRecipeDto } from './dto/response-recipe.dto';
+  ConflictException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { DataSource, Repository } from 'typeorm';
+import { RecipeEntity } from './recipe.entity';
+import { PaginationSortOrder } from '../common/dto/paginationRequestFilterQueryDto';
+import { ImageEntity } from '../images/image.entity';
+import { ImagesService } from '../images/images.service';
+
+export type Recipe = {
+  name: string;
+  description?: string;
+};
+
+type PaginationFilter = {
+  page: number;
+  pageSize: number;
+  orderBy?: string;
+  sortOrder?: PaginationSortOrder;
+};
 
 @Injectable()
 export class RecipesService {
   private readonly logger = new Logger(RecipesService.name);
 
   constructor(
-    @InjectRepository(Recipe)
-    private recipeRepository: Repository<Recipe>,
-  ) { }
+    private dataSource: DataSource,
 
-  private createOrderQuery(filter: PaginationFilterDto) {
+    private readonly imagesService: ImagesService,
+
+    @InjectRepository(RecipeEntity)
+    private recipeRepository: Repository<RecipeEntity>,
+  ) {}
+
+  private createOrderQuery(filter: PaginationFilter) {
     const order: any = {};
 
     if (filter.orderBy) {
@@ -26,62 +45,227 @@ export class RecipesService {
       return order;
     }
 
-    order.name = SortOrder.DESC;
+    order.name = PaginationSortOrder.DESC;
 
     return order;
   }
 
-  async findAll(filter: PaginationFilterDto): Promise<[Recipe[], number]> {
-    const [recipes, count] = await this.recipeRepository.findAndCount({
+  async getPage(filter: PaginationFilter) {
+    const [recipes, total] = await this.recipeRepository.findAndCount({
       order: this.createOrderQuery(filter),
       skip: (filter.page - 1) * filter.pageSize,
       take: filter.pageSize,
       relations: ['image'],
     });
 
-    const mappedRecipes = recipes.map(({ image, ...recipe }) => ({
+    const content = recipes.map(({ image, ...recipe }) => ({
       ...recipe,
       imageUrl: image?.url,
     }));
 
-    return [mappedRecipes, count];
+    return {
+      ...filter,
+      content,
+      total,
+    };
   }
 
-  async findOne(id: string) {
+  async getOne(id: string) {
     const recipe = await this.recipeRepository.findOne({
       where: { id },
       relations: ['image'],
+      loadEagerRelations: false,
     });
 
     if (!recipe) {
       throw new NotFoundException();
     }
 
-    return recipe;
+    return {
+      ...recipe,
+      imageUrl: recipe.image?.url,
+    };
   }
 
-  async addRecipe(recipe: Omit<Recipe, 'id'>) {
+  async createRecipe(recipe: Recipe) {
     return this.recipeRepository.save(recipe);
   }
 
-  async updateRecipe(id: string, recipe: Omit<Recipe, 'id'>) {
-    const currentRecipe = await this.findOne(id);
+  async updateRecipe(id: string, recipe: Recipe) {
+    const currentRecipe = await this.getOne(id);
 
     if (!currentRecipe) {
       throw new NotFoundException();
     }
 
-    return await this.recipeRepository.save({
+    const { image, ...updatedRecipe } = await this.recipeRepository.save({
       ...currentRecipe,
       ...recipe,
     });
+
+    return {
+      ...updatedRecipe,
+      imageUrl: image?.url,
+    };
   }
 
   async removeRecipe(id: string) {
-    const result = await this.recipeRepository.delete(id);
+    const queryRunner = this.dataSource.createQueryRunner();
 
-    if (result.affected === 0) {
-      throw new NotFoundException();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const { image, ...recipe } = await queryRunner.manager.findOne(
+        RecipeEntity,
+        {
+          where: { id },
+          relations: ['image'],
+        },
+      );
+
+      if (!recipe) {
+        throw new NotFoundException();
+      }
+
+      const deleteRecipeResult = await queryRunner.manager.delete(
+        RecipeEntity,
+        {
+          id: id,
+        },
+      );
+
+      if (deleteRecipeResult.affected === 0) {
+        throw new NotFoundException();
+      }
+
+      await queryRunner.manager.delete(ImageEntity, { id: image.id });
+
+      await queryRunner.commitTransaction();
+
+      await this.imagesService.removeImage(image.id);
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async addImage(id: string, file: Express.Multer.File) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    let updatedRecipe: RecipeEntity;
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const recipe = await queryRunner.manager.findOne(RecipeEntity, {
+        where: { id },
+        relations: ['image'],
+      });
+
+      if (!recipe) {
+        throw new NotFoundException();
+      }
+
+      if (recipe.image) {
+        throw new ConflictException(
+          'Recipe already has an image, only one image is allowed. Use PUT or DELETE to update the image.',
+        );
+      }
+
+      recipe.image = await this.imagesService.addImage(file);
+
+      updatedRecipe = await queryRunner.manager.save(recipe);
+
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+
+    return {
+      ...updatedRecipe,
+      imageUrl: updatedRecipe.image.url,
+    };
+  }
+
+  async updateImage(id: string, file: Express.Multer.File) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    let updatedRecipe: RecipeEntity;
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const recipe = await queryRunner.manager.findOne(RecipeEntity, {
+        where: { id },
+        relations: ['image'],
+      });
+
+      if (!recipe) {
+        throw new NotFoundException();
+      }
+
+      // TODO: This is not part of the transaction
+      recipe.image = await this.imagesService.updateImage(
+        recipe.image.id,
+        file,
+      );
+
+      updatedRecipe = await queryRunner.manager.save(recipe);
+
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+
+    return {
+      ...updatedRecipe,
+      imageUrl: updatedRecipe.image.url,
+    };
+  }
+
+  async removeImage(id: string) {
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const recipe = await queryRunner.manager.findOne(RecipeEntity, {
+        where: { id },
+        relations: ['image'],
+      });
+
+      if (!recipe) {
+        throw new NotFoundException();
+      }
+
+      const imageId = recipe.image.id;
+      recipe.image = null;
+
+      await queryRunner.manager.save(recipe);
+
+      // TODO: This is not part of the transaction
+      await this.imagesService.removeImage(imageId);
+
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+
+      throw error;
+    } finally {
+      await queryRunner.release();
     }
   }
 }

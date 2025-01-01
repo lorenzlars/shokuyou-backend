@@ -1,19 +1,19 @@
-import { IsNumber, IsOptional, IsEnum, Min } from 'class-validator';
-import { Transform } from 'class-transformer';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsEnum, IsNumber, IsOptional, Min } from 'class-validator';
+import { Expose } from 'class-transformer';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export enum SortOrder {
+export enum PaginationSortOrder {
   ASC = 'ASC',
   DESC = 'DESC',
 }
 
-export class PaginationFilterDto {
+export class PaginationRequestFilterQueryDto {
   @ApiProperty({
     description: 'The page number',
     default: 1,
   })
-  @Transform(({ value }) => parseInt(value))
   @Min(1)
+  @Expose()
   @IsNumber({}, { message: ' "page" atrribute should be a number' })
   public page: number = 1;
 
@@ -21,23 +21,26 @@ export class PaginationFilterDto {
     description: 'The page size',
     default: 10,
   })
-  @Transform(({ value }) => parseInt(value))
   @Min(1)
+  @Expose()
   @IsNumber({}, { message: ' "pageSize" attribute should be a number ' })
   public pageSize: number = 10;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The order by attribute',
     required: false,
   })
+  @Expose()
   @IsOptional()
   public orderBy?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The sort order',
-    required: false,
+    enum: PaginationSortOrder,
+    enumName: 'PaginationSortOrder',
   })
-  @IsEnum(SortOrder)
+  @Expose()
   @IsOptional()
-  public sortOrder?: SortOrder = SortOrder.DESC;
+  @IsEnum(PaginationSortOrder)
+  public sortOrder?: PaginationSortOrder = PaginationSortOrder.DESC;
 }
