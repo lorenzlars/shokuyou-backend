@@ -4,20 +4,19 @@ import {
   Delete,
   Get,
   Param,
-  Patch,
   Post,
   UseGuards,
   Query,
   UploadedFile,
   UseInterceptors,
-  NotFoundException,
-  NotAcceptableException,
   ParseFilePipe,
   MaxFileSizeValidator,
   FileTypeValidator,
   ParseUUIDPipe,
   ClassSerializerInterceptor,
   SerializeOptions,
+  Put,
+  ConflictException,
 } from '@nestjs/common';
 import { RecipesService } from './recipes.service';
 import {
@@ -114,7 +113,7 @@ export class RecipesController {
   }
 
   @ApiOperation({
-    summary: 'Update a single recipe',
+    summary: 'Replace a single recipe',
     operationId: 'updateRecipe',
     parameters: [{ name: 'id', in: 'path', description: 'Id of the recipe' }],
   })
@@ -125,12 +124,23 @@ export class RecipesController {
   @ApiNotFoundResponse({
     description: 'Recipe not found',
   })
-  @Patch(':id')
+  // TODO: Create a custom decorator for this two decorators, they are used for transforming the response if the returned object is constructed manually
+  @UseInterceptors(ClassSerializerInterceptor)
+  @SerializeOptions({ type: ResponseRecipeDto })
+  @Put(':id')
   async updateRecipe(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateRecipeDto: UpdateRecipeDto,
   ) {
-    return await this.recipesService.updateRecipe(id, updateRecipeDto);
+    const { image, ...recipe } = await this.recipesService.updateRecipe(
+      id,
+      updateRecipeDto,
+    );
+
+    return {
+      ...recipe,
+      imageUrl: image?.url,
+    };
   }
 
   @ApiOperation({
@@ -194,7 +204,9 @@ export class RecipesController {
     const recipe = await this.recipesService.findOne(id);
 
     if (recipe.image) {
-      await this.imagesService.removeImage(recipe.image.id);
+      throw new ConflictException(
+        'Recipe already has an image, only one image is allowed. Use PUT or DELETE to update the image.',
+      );
     }
 
     const image = await this.imagesService.addImage(file);
@@ -207,6 +219,55 @@ export class RecipesController {
     return {
       ...updatedRecipe,
       imageUrl: recipeImage.url,
+    };
+  }
+
+  @ApiOperation({
+    summary: 'Replace the image of the recipe',
+    operationId: 'updateImage',
+    parameters: [{ name: 'id', in: 'path', description: 'Id of the recipe' }],
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['file'],
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Successfully uploaded the image',
+    type: ResponseRecipeDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'No Recipe found to update the image at',
+  })
+  @ApiConsumes('multipart/form-data')
+  @Put(':id/image')
+  @UseInterceptors(FileInterceptor('file'))
+  async updateImage(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 10_000_000 }),
+          new FileTypeValidator({ fileType: 'image/*' }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ): Promise<ResponseRecipeDto> {
+    // TODO: Use transactions to ensure that the image is only added or deleted if the recipe is updated successfully
+    const { image, ...recipe } = await this.recipesService.findOne(id);
+    await this.imagesService.updateImage(image.id, file);
+
+    return {
+      ...recipe,
+      imageUrl: image.url,
     };
   }
 
@@ -225,12 +286,8 @@ export class RecipesController {
   async deleteImage(@Param('id', new ParseUUIDPipe()) id: string) {
     const { image, ...recipe } = await this.recipesService.findOne(id);
 
-    if (!recipe) {
-      throw new NotFoundException();
-    }
+    await this.recipesService.updateRecipe(id, { ...recipe, image: null });
 
-    await this.imagesService.removeImage(image.id);
-
-    return await this.recipesService.updateRecipe(id, recipe);
+    return await this.imagesService.removeImage(image.id);
   }
 }

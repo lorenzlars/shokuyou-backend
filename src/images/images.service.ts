@@ -25,19 +25,7 @@ export class ImagesService {
     });
   }
 
-  async findOne(id: string): Promise<Image> {
-    const image = await this.imageRepository.findOne({
-      where: { id },
-    });
-
-    if (!image) {
-      throw new NotFoundException();
-    }
-
-    return image;
-  }
-
-  async addImage(file: Express.Multer.File): Promise<Image> {
+  private async uploadImageFile(file: Express.Multer.File) {
     const uploadResponse = await new Promise<cloudinary.UploadApiResponse>(
       (resolve, reject) => {
         return cloudinary.v2.uploader
@@ -63,6 +51,55 @@ export class ImagesService {
       throw new Error('Failed to upload image');
     }
 
+    return uploadResponse;
+  }
+
+  private async deleteImageFile(publicId: string) {
+    return new Promise<cloudinary.UploadApiResponse>((resolve, reject) => {
+      return cloudinary.v2.uploader.destroy(publicId, (error, uploadResult) => {
+        if (error) {
+          return reject(error);
+        }
+
+        return resolve(uploadResult);
+      });
+    });
+  }
+
+  async findOne(id: string): Promise<Image> {
+    const image = await this.imageRepository.findOne({
+      where: { id },
+    });
+
+    if (!image) {
+      throw new NotFoundException();
+    }
+
+    return image;
+  }
+
+  async addImage(file: Express.Multer.File): Promise<Image> {
+    const uploadResponse = await this.uploadImageFile(file);
+
+    return await this.imageRepository.save({
+      publicId: uploadResponse.public_id,
+      url: uploadResponse.url,
+    });
+  }
+
+  async updateImage(id: string, file: Express.Multer.File) {
+    const image = await this.imageRepository.findOne({
+      where: { id },
+    });
+
+    if (!image) {
+      throw new NotFoundException();
+    }
+
+    const uploadResponse = await this.uploadImageFile(file);
+
+    await this.deleteImageFile(image.publicId);
+
     return await this.imageRepository.save({
       publicId: uploadResponse.public_id,
       url: uploadResponse.url,
@@ -78,22 +115,7 @@ export class ImagesService {
       throw new NotFoundException();
     }
 
-    try {
-      await new Promise<cloudinary.UploadApiResponse>((resolve, reject) => {
-        return cloudinary.v2.uploader.destroy(
-          image.publicId,
-          (error, uploadResult) => {
-            if (error) {
-              return reject(error);
-            }
-
-            return resolve(uploadResult);
-          },
-        );
-      });
-    } catch (error) {
-      throw new Error('Failed to delete image');
-    }
+    await this.deleteImageFile(image.publicId);
 
     const result = await this.imageRepository.delete(image.id);
 

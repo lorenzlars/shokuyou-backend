@@ -36,7 +36,7 @@ export class Recipe {
     description: 'The image of the recipe',
     type: Image,
   })
-  @OneToOne(() => Image)
+  @OneToOne(() => Image, { nullable: true })
   @JoinColumn()
   @Optional()
   image?: Image;

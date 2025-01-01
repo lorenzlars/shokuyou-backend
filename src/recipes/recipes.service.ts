@@ -15,7 +15,7 @@ export class RecipesService {
   constructor(
     @InjectRepository(Recipe)
     private recipeRepository: Repository<Recipe>,
-  ) {}
+  ) { }
 
   private createOrderQuery(filter: PaginationFilterDto) {
     const order: any = {};
