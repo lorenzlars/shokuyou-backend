@@ -5,16 +5,14 @@ import { RecipeEntity } from './recipe.entity';
 import { RecipesService } from './recipes.service';
 import { ConfigModule } from '@nestjs/config';
 import { ImagesModule } from '../images/images.module';
-import { ImageEntity } from '../images/image.entity';
-import { RecipeMapper } from './recipe.mapper';
 
 @Module({
   imports: [
     ConfigModule,
     ImagesModule,
-    TypeOrmModule.forFeature([RecipeEntity, ImageEntity]),
+    TypeOrmModule.forFeature([RecipeEntity]),
   ],
-  providers: [RecipesService, RecipeMapper],
+  providers: [RecipesService],
   controllers: [RecipesController],
 })
 export class RecipesModule {}

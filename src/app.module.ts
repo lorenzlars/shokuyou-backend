@@ -32,6 +32,9 @@ import { RemoveEmptyInterceptor } from './common/interceptors/removeEmptyInterce
                 rejectUnauthorized: false,
               },
             }),
+        extra: {
+          max: 20,
+        },
       }),
     }),
     RecipesModule,

@@ -2,7 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import * as cloudinary from 'cloudinary';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { ImageEntity } from './image.entity';
 
 @Injectable()
@@ -66,29 +66,24 @@ export class ImagesService {
     });
   }
 
-  async findOne(id: string): Promise<ImageEntity> {
-    const image = await this.imageRepository.findOne({
-      where: { id },
-    });
-
-    if (!image) {
-      throw new NotFoundException();
-    }
-
-    return image;
-  }
-
-  async addImage(file: Express.Multer.File): Promise<ImageEntity> {
+  async addImage(
+    file: Express.Multer.File,
+    entityManager: EntityManager,
+  ): Promise<ImageEntity> {
     const uploadResponse = await this.uploadImageFile(file);
 
-    return await this.imageRepository.save({
+    return await entityManager.save(ImageEntity, {
       publicId: uploadResponse.public_id,
       url: uploadResponse.url,
     });
   }
 
-  async updateImage(id: string, file: Express.Multer.File) {
-    const image = await this.imageRepository.findOne({
+  async updateImage(
+    id: string,
+    file: Express.Multer.File,
+    entityManager: EntityManager,
+  ) {
+    const image = await entityManager.findOne(ImageEntity, {
       where: { id },
     });
 
@@ -100,15 +95,15 @@ export class ImagesService {
 
     await this.deleteImageFile(image.publicId);
 
-    return await this.imageRepository.save({
+    return await entityManager.save(ImageEntity, {
       ...image,
       publicId: uploadResponse.public_id,
       url: uploadResponse.url,
     });
   }
 
-  async removeImage(id: string) {
-    const image = await this.imageRepository.findOne({
+  async removeImage(id: string, entityManager: EntityManager) {
+    const image = await entityManager.findOne(ImageEntity, {
       where: { id },
     });
 
@@ -118,7 +113,7 @@ export class ImagesService {
 
     await this.deleteImageFile(image.publicId);
 
-    const result = await this.imageRepository.delete(image.id);
+    const result = await entityManager.delete(ImageEntity, { id: image.id });
 
     if (result.affected === 0) {
       throw new NotFoundException();

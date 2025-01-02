@@ -8,7 +8,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { RecipeEntity } from './recipe.entity';
 import { PaginationSortOrder } from '../common/dto/paginationRequestFilterQueryDto';
-import { ImageEntity } from '../images/image.entity';
 import { ImagesService } from '../images/images.service';
 
 export type Recipe = {
@@ -130,20 +129,16 @@ export class RecipesService {
 
       const deleteRecipeResult = await queryRunner.manager.delete(
         RecipeEntity,
-        {
-          id: id,
-        },
+        { id: id },
       );
 
       if (deleteRecipeResult.affected === 0) {
         throw new NotFoundException();
       }
 
-      await queryRunner.manager.delete(ImageEntity, { id: image.id });
+      await this.imagesService.removeImage(image.id, queryRunner.manager);
 
       await queryRunner.commitTransaction();
-
-      await this.imagesService.removeImage(image.id);
     } catch (error) {
       await queryRunner.rollbackTransaction();
 
@@ -176,7 +171,10 @@ export class RecipesService {
         );
       }
 
-      recipe.image = await this.imagesService.addImage(file);
+      recipe.image = await this.imagesService.addImage(
+        file,
+        queryRunner.manager,
+      );
 
       updatedRecipe = await queryRunner.manager.save(recipe);
 
@@ -212,10 +210,10 @@ export class RecipesService {
         throw new NotFoundException();
       }
 
-      // TODO: This is not part of the transaction
       recipe.image = await this.imagesService.updateImage(
         recipe.image.id,
         file,
+        queryRunner.manager,
       );
 
       updatedRecipe = await queryRunner.manager.save(recipe);
@@ -256,8 +254,7 @@ export class RecipesService {
 
       await queryRunner.manager.save(recipe);
 
-      // TODO: This is not part of the transaction
-      await this.imagesService.removeImage(imageId);
+      await this.imagesService.removeImage(imageId, queryRunner.manager);
 
       await queryRunner.commitTransaction();
     } catch (error) {
