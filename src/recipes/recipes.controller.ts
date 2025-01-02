@@ -28,7 +28,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RecipeEntity } from './recipe.entity';
 import { PaginationRequestFilterQueryDto } from '../common/dto/paginationRequestFilterQueryDto';
 import { ApiPaginatedResponse } from '../common/decorators/apiPaginationResponse';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -54,7 +53,7 @@ export class RecipesController {
   })
   @ApiCreatedResponse({
     description: 'Recipe successfully created',
-    type: RecipeEntity,
+    type: RecipeResponseDto,
   })
   @TransformResponse(RecipeResponseDto)
   @Post()
@@ -101,7 +100,7 @@ export class RecipesController {
   })
   @ApiOkResponse({
     description: 'Successfully updated the recipe',
-    type: RecipeEntity,
+    type: RecipeResponseDto,
   })
   @ApiNotFoundResponse({
     description: 'Recipe not found',

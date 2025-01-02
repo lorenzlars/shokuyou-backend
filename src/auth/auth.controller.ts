@@ -25,6 +25,7 @@ import { LocalAuthGuard } from './local-auth.guard';
 import { AuthRequestDto } from './dto/authRequest.dto';
 import { UserResponseDto } from '../users/dto/userResponse.dto';
 import { TransformResponse } from '../common/interceptors/responseTransformInterceptor';
+import { AuthRegisterRequestDto } from './dto/authRegisterRequest.dto';
 
 @ApiTags('auth')
 @Controller({
@@ -60,7 +61,7 @@ export class AuthController {
   })
   @ApiBody({
     description: 'Daten zur Erstellung eines neuen Benutzers',
-    type: AuthRequestDto,
+    type: AuthRegisterRequestDto,
   })
   @ApiCreatedResponse({
     description: 'User successfully registered',
@@ -70,8 +71,8 @@ export class AuthController {
   })
   @HttpCode(HttpStatus.CREATED)
   @Post('register')
-  async register(@Body() authRequestDto: AuthRequestDto) {
-    await this.authService.register(authRequestDto);
+  async register(@Body() authRegisterRequestDto: AuthRegisterRequestDto) {
+    await this.authService.register(authRegisterRequestDto);
   }
 
   @UseGuards(JwtAuthGuard)

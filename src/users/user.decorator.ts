@@ -1,6 +1,9 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
-export type RequestUser = Record<string, any>;
+export type RequestUser = {
+  id: string;
+  username: string;
+};
 
 export const User = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
