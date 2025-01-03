@@ -6,7 +6,6 @@ import {
   OneToOne,
 } from 'typeorm';
 import { ImageEntity } from '../images/image.entity';
-import { Optional } from '@nestjs/common';
 
 @Entity({ name: 'recipes' })
 export class RecipeEntity {
@@ -19,8 +18,28 @@ export class RecipeEntity {
   @Column({ nullable: true })
   description?: string;
 
+  @Column({ nullable: true })
+  source?: string;
+
+  @Column({ nullable: true })
+  servings?: number;
+
+  @Column({ nullable: true })
+  duration?: number;
+
+  @Column({ nullable: true })
+  ingredients?: string;
+
+  @Column({ nullable: true })
+  instructions?: string;
+
+  @Column({ nullable: true })
+  nutrition?: string;
+
+  @Column({ nullable: true })
+  notes?: string;
+
   @OneToOne(() => ImageEntity, { nullable: true })
   @JoinColumn()
-  @Optional()
   image?: ImageEntity;
 }
