@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, ILike, Repository } from 'typeorm';
 import { RecipeEntity } from './recipe.entity';
 import { PaginationSortOrder } from '../common/dto/paginationRequestFilterQueryDto';
 import { ImagesService } from '../images/images.service';
@@ -20,6 +20,7 @@ type PaginationFilter = {
   pageSize: number;
   orderBy?: string;
   sortOrder?: PaginationSortOrder;
+  filter?: string;
 };
 
 @Injectable()
@@ -55,6 +56,9 @@ export class RecipesService {
       skip: (filter.page - 1) * filter.pageSize,
       take: filter.pageSize,
       relations: ['image'],
+      where: {
+        name: filter.filter ? ILike(`%${filter.filter}%`) : undefined, // TODO: Is filter sanitized?
+      },
     });
 
     const content = recipes.map(({ image, ...recipe }) => ({

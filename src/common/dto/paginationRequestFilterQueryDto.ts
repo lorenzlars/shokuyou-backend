@@ -1,4 +1,4 @@
-import { IsEnum, IsNumber, IsOptional, Min } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { Expose } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -28,7 +28,6 @@ export class PaginationRequestFilterQueryDto {
 
   @ApiPropertyOptional({
     description: 'The order by attribute',
-    required: false,
   })
   @Expose()
   @IsOptional()
@@ -43,4 +42,12 @@ export class PaginationRequestFilterQueryDto {
   @IsOptional()
   @IsEnum(PaginationSortOrder)
   public sortOrder?: PaginationSortOrder = PaginationSortOrder.DESC;
+
+  @ApiPropertyOptional({
+    description: 'The filter',
+  })
+  @Expose()
+  @IsOptional()
+  @IsString()
+  public filter?: string;
 }
