@@ -1,5 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsString, IsUrl } from 'class-validator';
+import {
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUrl,
+  IsNotEmpty,
+} from 'class-validator';
 
 export class RecipeRequestDto {
   @ApiProperty({
@@ -7,6 +13,7 @@ export class RecipeRequestDto {
     example: 'Spaghetti Carbonara',
   })
   @IsString()
+  @IsNotEmpty()
   name: string;
 
   @ApiPropertyOptional({
