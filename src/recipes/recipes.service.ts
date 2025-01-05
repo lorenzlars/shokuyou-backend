@@ -119,18 +119,17 @@ export class RecipesService {
     await queryRunner.startTransaction();
 
     try {
-      const { image, ...recipe } = await queryRunner.manager.findOne(
-        RecipeEntity,
-        {
-          where: { id },
-          relations: ['image'],
-        },
-      );
+      const recipe = await queryRunner.manager.findOne(RecipeEntity, {
+        where: { id },
+        relations: ['image'],
+      });
 
       if (!recipe) {
         throw new NotFoundException();
       }
 
+      const imageId = recipe.image?.id;
+      // TODO: Can typeorm delete the related entries at once?
       const deleteRecipeResult = await queryRunner.manager.delete(
         RecipeEntity,
         { id: id },
@@ -140,7 +139,9 @@ export class RecipesService {
         throw new NotFoundException();
       }
 
-      await this.imagesService.removeImage(image.id, queryRunner.manager);
+      if (imageId) {
+        await this.imagesService.removeImage(imageId, queryRunner.manager);
+      }
 
       await queryRunner.commitTransaction();
     } catch (error) {
@@ -253,12 +254,14 @@ export class RecipesService {
         throw new NotFoundException();
       }
 
-      const imageId = recipe.image.id;
+      const imageId = recipe.image?.id;
       recipe.image = null;
 
       await queryRunner.manager.save(recipe);
 
-      await this.imagesService.removeImage(imageId, queryRunner.manager);
+      if (imageId) {
+        await this.imagesService.removeImage(imageId, queryRunner.manager);
+      }
 
       await queryRunner.commitTransaction();
     } catch (error) {
