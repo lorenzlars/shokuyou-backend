@@ -1,8 +1,22 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  NotImplementedException,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiQuery,
   ApiSecurity,
@@ -31,16 +45,31 @@ export class IngredientsController {
   @ApiOperation({
     operationId: 'createIngredient',
   })
-  @ApiCreatedResponse({
-    type: IngredientResponseDto,
-  })
   @ApiBody({
     type: IngredientRequestDto,
+  })
+  @ApiCreatedResponse({
+    type: IngredientResponseDto,
   })
   @TransformResponse(IngredientResponseDto)
   @Post()
   async createIngredient(@Body() ingredientRequestDto: IngredientRequestDto) {
     return await this.ingredientsService.create(ingredientRequestDto);
+  }
+
+  @ApiOperation({
+    operationId: 'getIngredient',
+  })
+  @ApiOkResponse({
+    type: IngredientResponseDto,
+  })
+  @ApiNotFoundResponse()
+  @TransformResponse(IngredientResponseDto)
+  @Get(':id')
+  async getIngredient(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<IngredientResponseDto> {
+    throw new NotImplementedException();
   }
 
   @ApiOperation({
@@ -56,5 +85,33 @@ export class IngredientsController {
     @Query() filter: PaginationRequestFilterQueryDto,
   ): Promise<PaginationResponseDto<IngredientResponseDto>> {
     return await this.ingredientsService.getPage(filter);
+  }
+
+  @ApiOperation({
+    operationId: 'updateIngredients',
+  })
+  @ApiBody({
+    type: IngredientRequestDto,
+  })
+  @ApiOkResponse({
+    type: IngredientResponseDto,
+  })
+  @ApiNotFoundResponse()
+  @TransformResponse(IngredientResponseDto)
+  @Put(':id')
+  async updateIngredient(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<IngredientResponseDto> {
+    throw new NotImplementedException();
+  }
+
+  @ApiOperation({
+    operationId: 'deleteIngredients',
+  })
+  @ApiOkResponse({ description: 'Successfully deleted the ingredient' })
+  @ApiNotFoundResponse({ description: 'Ingredient not found' })
+  @Delete(':id')
+  async deleteIngredient(@Param('id', new ParseUUIDPipe()) id: string) {
+    throw new NotImplementedException();
   }
 }
