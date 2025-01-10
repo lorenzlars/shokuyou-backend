@@ -4,8 +4,10 @@ import {
   PrimaryGeneratedColumn,
   JoinColumn,
   OneToOne,
+  ManyToOne,
 } from 'typeorm';
 import { ImageEntity } from '../images/image.entity';
+import { UserEntity } from '../users/user.entity';
 
 @Entity({ name: 'recipes' })
 export class RecipeEntity {
@@ -42,4 +44,7 @@ export class RecipeEntity {
   @OneToOne(() => ImageEntity, { nullable: true })
   @JoinColumn()
   image?: ImageEntity;
+
+  @ManyToOne(() => UserEntity, (user) => user.recipes)
+  owner: UserEntity;
 }

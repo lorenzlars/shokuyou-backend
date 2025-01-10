@@ -38,7 +38,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: any): Promise<Omit<UserEntity, 'password'>> {
+  // TODO: Imrove typing and don't use the UserEntity
+  async validate(
+    payload: any,
+  ): Promise<Omit<UserEntity, 'password' | 'recipes'>> {
     return { id: payload.sub, username: payload.username };
   }
 }

@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -9,6 +10,7 @@ import { DataSource, ILike, Repository } from 'typeorm';
 import { RecipeEntity } from './recipe.entity';
 import { PaginationSortOrder } from '../common/dto/paginationRequestFilterQueryDto';
 import { ImagesService } from '../images/images.service';
+import { REQUEST } from '@nestjs/core';
 
 export type Recipe = {
   name: string;
@@ -33,7 +35,10 @@ export class RecipesService {
     private readonly imagesService: ImagesService,
 
     @InjectRepository(RecipeEntity)
-    private recipeRepository: Repository<RecipeEntity>,
+    private recipeEntityRepository: Repository<RecipeEntity>,
+
+    // TODO: How to add the user into the type correctly
+    @Inject(REQUEST) private readonly request: Request & { user: any },
   ) {}
 
   private createOrderQuery(filter: PaginationFilter) {
@@ -51,13 +56,14 @@ export class RecipesService {
   }
 
   async getPage(filter: PaginationFilter) {
-    const [recipes, total] = await this.recipeRepository.findAndCount({
+    const [recipes, total] = await this.recipeEntityRepository.findAndCount({
       order: this.createOrderQuery(filter),
       skip: (filter.page - 1) * filter.pageSize,
       take: filter.pageSize,
       relations: ['image'],
       where: {
         name: filter.filter ? ILike(`%${filter.filter}%`) : undefined, // TODO: Is filter sanitized?
+        owner: { id: this.request.user.id },
       },
     });
 
@@ -74,9 +80,12 @@ export class RecipesService {
   }
 
   async getOne(id: string) {
-    const recipe = await this.recipeRepository.findOne({
-      where: { id },
-      relations: ['image'],
+    const recipe = await this.recipeEntityRepository.findOne({
+      where: {
+        id,
+        owner: { id: this.request.user.id },
+      },
+      relations: ['image', 'owner'],
       loadEagerRelations: false,
     });
 
@@ -90,8 +99,13 @@ export class RecipesService {
     };
   }
 
-  async createRecipe(recipe: Recipe) {
-    return this.recipeRepository.save(recipe);
+  async createRecipe(payload: Recipe) {
+    const recipe = this.recipeEntityRepository.create({
+      ...payload,
+      owner: { id: this.request.user.id },
+    });
+
+    return this.recipeEntityRepository.save(recipe);
   }
 
   async updateRecipe(id: string, recipe: Recipe) {
@@ -101,7 +115,7 @@ export class RecipesService {
       throw new NotFoundException();
     }
 
-    const { image, ...updatedRecipe } = await this.recipeRepository.save({
+    const { image, ...updatedRecipe } = await this.recipeEntityRepository.save({
       ...currentRecipe,
       ...recipe,
     });

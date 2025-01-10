@@ -1,5 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { Exclude } from 'class-transformer';
+import { RecipeEntity } from '../recipes/recipe.entity';
 
 @Entity({ name: 'users' })
 export class UserEntity {
@@ -12,4 +13,7 @@ export class UserEntity {
   @Column()
   @Exclude({ toPlainOnly: true })
   password: string;
+
+  @OneToMany(() => RecipeEntity, (recipe) => recipe.owner)
+  recipes: RecipeEntity[];
 }
