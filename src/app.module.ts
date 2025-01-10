@@ -10,6 +10,8 @@ import { ImageEntity } from './images/image.entity';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ResponseTransformInterceptor } from './common/interceptors/responseTransformInterceptor';
 import { RemoveEmptyInterceptor } from './common/interceptors/removeEmptyInterceptor';
+import { IngredientsModule } from './ingredients/ingredients.module';
+import { IngredientEntity } from './ingredients/ingredient.entity';
 
 @Module({
   imports: [
@@ -22,7 +24,7 @@ import { RemoveEmptyInterceptor } from './common/interceptors/removeEmptyInterce
       useFactory: async (configService) => ({
         type: 'postgres',
         url: configService.get('DATABASE_URL'),
-        entities: [UserEntity, RecipeEntity, ImageEntity],
+        entities: [UserEntity, RecipeEntity, ImageEntity, IngredientEntity],
         synchronize: true,
         ...(process.env.MODE === 'development'
           ? {}
@@ -40,6 +42,7 @@ import { RemoveEmptyInterceptor } from './common/interceptors/removeEmptyInterce
     RecipesModule,
     AuthModule,
     UsersModule,
+    IngredientsModule,
   ],
   providers: [
     {

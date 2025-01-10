@@ -11,10 +11,16 @@ import { RecipeEntity } from './recipe.entity';
 import { PaginationSortOrder } from '../common/dto/paginationRequestFilterQueryDto';
 import { ImagesService } from '../images/images.service';
 import { REQUEST } from '@nestjs/core';
+import {
+  Ingredient,
+  IngredientsService,
+} from '../ingredients/ingredients.service';
 
 export type Recipe = {
   name: string;
   description?: string;
+  ingredients?: Ingredient[];
+  instructions?: string;
 };
 
 type PaginationFilter = {
@@ -33,6 +39,8 @@ export class RecipesService {
     private dataSource: DataSource,
 
     private readonly imagesService: ImagesService,
+
+    private readonly ingredientsService: IngredientsService,
 
     @InjectRepository(RecipeEntity)
     private recipeEntityRepository: Repository<RecipeEntity>,
@@ -60,7 +68,7 @@ export class RecipesService {
       order: this.createOrderQuery(filter),
       skip: (filter.page - 1) * filter.pageSize,
       take: filter.pageSize,
-      relations: ['image'],
+      relations: ['image', 'ingredients'],
       where: {
         name: filter.filter ? ILike(`%${filter.filter}%`) : undefined, // TODO: Is filter sanitized?
         owner: { id: this.request.user.id },
@@ -85,7 +93,7 @@ export class RecipesService {
         id,
         owner: { id: this.request.user.id },
       },
-      relations: ['image', 'owner'],
+      relations: ['image', 'ingredients'],
       loadEagerRelations: false,
     });
 
@@ -102,8 +110,16 @@ export class RecipesService {
   async createRecipe(payload: Recipe) {
     const recipe = this.recipeEntityRepository.create({
       ...payload,
+      ingredients: [],
       owner: { id: this.request.user.id },
     });
+
+    for (const ingredient of payload.ingredients) {
+      await this.ingredientsService.create({
+        ...ingredient,
+        recipes: [recipe],
+      });
+    }
 
     return this.recipeEntityRepository.save(recipe);
   }
@@ -115,9 +131,10 @@ export class RecipesService {
       throw new NotFoundException();
     }
 
+    // TODO: Update ingredients
     const { image, ...updatedRecipe } = await this.recipeEntityRepository.save({
       ...currentRecipe,
-      ...recipe,
+      ...{ ...recipe, ingredients: [] },
     });
 
     return {

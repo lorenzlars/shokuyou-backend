@@ -5,9 +5,12 @@ import {
   JoinColumn,
   OneToOne,
   ManyToOne,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { ImageEntity } from '../images/image.entity';
 import { UserEntity } from '../users/user.entity';
+import { IngredientEntity } from '../ingredients/ingredient.entity';
 
 @Entity({ name: 'recipes' })
 export class RecipeEntity {
@@ -29,8 +32,9 @@ export class RecipeEntity {
   @Column({ nullable: true })
   duration?: number;
 
-  @Column({ nullable: true })
-  ingredients?: string;
+  @ManyToMany(() => RecipeEntity, { nullable: true })
+  @JoinTable()
+  ingredients?: IngredientEntity[];
 
   @Column({ nullable: true })
   instructions?: string;

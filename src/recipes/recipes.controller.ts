@@ -56,6 +56,9 @@ export class RecipesController {
     description: 'Recipe successfully created',
     type: RecipeResponseDto,
   })
+  @ApiBody({
+    type: RecipeRequestDto,
+  })
   @TransformResponse(RecipeResponseDto)
   @Post()
   async addRecipe(@Body() recipeRequestDto: RecipeRequestDto) {
@@ -108,6 +111,9 @@ export class RecipesController {
   })
   @ApiNotFoundResponse({
     description: 'Recipe not found',
+  })
+  @ApiBody({
+    type: RecipeRequestDto,
   })
   @TransformResponse(RecipeResponseDto)
   @Put(':id')

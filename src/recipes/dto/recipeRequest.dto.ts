@@ -5,7 +5,10 @@ import {
   IsString,
   IsUrl,
   IsNotEmpty,
+  IsArray,
 } from 'class-validator';
+import { IngredientRequestDto } from '../../ingredients/dto/ingredientRequest.dto';
+import { Type } from 'class-transformer';
 
 export class RecipeRequestDto {
   @ApiProperty({
@@ -48,10 +51,13 @@ export class RecipeRequestDto {
 
   @ApiPropertyOptional({
     description: 'The recipe ingredients',
+    isArray: true,
+    type: IngredientRequestDto,
   })
-  @IsString()
+  @Type(() => IngredientRequestDto)
+  @IsArray()
   @IsOptional()
-  ingredients?: string;
+  ingredients?: IngredientRequestDto[];
 
   @ApiPropertyOptional({
     description: 'The recipe instructions',

@@ -1,6 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsString } from 'class-validator';
-import { Expose } from 'class-transformer';
+import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
+import { Expose, Type } from 'class-transformer';
+import { IngredientResponseDto } from '../../ingredients/dto/ingredientResponse.dto';
+
 export class RecipeResponseDto {
   @ApiProperty({
     description: 'The id of the recipe',
@@ -54,11 +56,14 @@ export class RecipeResponseDto {
 
   @ApiPropertyOptional({
     description: 'The recipe ingredients',
+    isArray: true,
+    type: IngredientResponseDto,
   })
-  @IsString()
+  @Type(() => IngredientResponseDto)
+  @IsArray()
   @IsOptional()
   @Expose()
-  ingredients?: string;
+  ingredients?: IngredientResponseDto[];
 
   @ApiPropertyOptional({
     description: 'The recipe instructions',
