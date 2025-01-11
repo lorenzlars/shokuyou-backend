@@ -81,7 +81,7 @@ export class RecipesController {
   async getRecipe(
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<RecipeResponseDto> {
-    return await this.recipesService.getOne(id);
+    return await this.recipesService.getRecipe(id);
   }
 
   @ApiOperation({
@@ -97,7 +97,7 @@ export class RecipesController {
   async getRecipes(
     @Query() filter: PaginationRequestFilterQueryDto,
   ): Promise<PaginationResponseDto<RecipeResponseDto>> {
-    return await this.recipesService.getPage(filter);
+    return await this.recipesService.getRecipePage(filter);
   }
 
   @ApiOperation({

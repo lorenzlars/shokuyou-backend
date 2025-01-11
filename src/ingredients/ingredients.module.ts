@@ -8,6 +8,6 @@ import { IngredientEntity } from './ingredient.entity';
   imports: [TypeOrmModule.forFeature([IngredientEntity])],
   controllers: [IngredientsController],
   providers: [IngredientsService],
-  exports: [IngredientsService],
+  exports: [TypeOrmModule, IngredientsService],
 })
 export class IngredientsModule {}

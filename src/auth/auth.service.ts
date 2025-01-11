@@ -21,7 +21,7 @@ export class AuthService {
   ) {}
 
   async validateUser(username: string, password: string) {
-    const user = await this.usersService.findOne(username);
+    const user = await this.usersService.getByUsername(username);
 
     if (user && (await bcrypt.compare(password, user.password))) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -42,7 +42,7 @@ export class AuthService {
   }
 
   async register(user: UserRegister) {
-    if (await this.usersService.findOne(user.username)) {
+    if (await this.usersService.getByUsername(user.username)) {
       throw new ConflictException('User already exists');
     }
 
@@ -55,6 +55,6 @@ export class AuthService {
   }
 
   async getProfile(id: string) {
-    return await this.usersService.findOne(id);
+    return await this.usersService.getById(id);
   }
 }

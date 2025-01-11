@@ -8,7 +8,6 @@ import {
 } from '@nestjs/swagger';
 
 import 'reflect-metadata';
-import { DUMMY_BEARER_TOKEN } from './auth/constants';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -66,7 +65,6 @@ async function bootstrap() {
               scheme: 'bearer',
               bearerFormat: 'JWT',
             },
-            value: DUMMY_BEARER_TOKEN,
           },
         },
       },

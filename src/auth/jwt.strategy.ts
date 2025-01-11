@@ -1,32 +1,22 @@
 import { Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { UserEntity } from 'src/users/user.entity';
-import { JwtService } from '@nestjs/jwt';
-import { DUMMY_BEARER_TOKEN } from './constants';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  private readonly dummyUser = { sub: '-1', username: 'dummy_user' };
   private readonly logger = new Logger(JwtStrategy.name);
 
-  constructor(private jwtService: JwtService) {
+  constructor(private readonly usersService: UsersService) {
     super({
       jwtFromRequest: (req: any) => {
         const data = req.headers['authorization'];
 
         if (data) {
           const [type, token] = data.split(' ');
+
           if (type === 'Bearer') {
-            if (
-              process.env.MODE === 'development' &&
-              token === DUMMY_BEARER_TOKEN
-            ) {
-              this.logger.warn('Dummy token issued');
-
-              return this.jwtService.sign(this.dummyUser);
-            }
-
             return token;
           }
         }
@@ -42,6 +32,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(
     payload: any,
   ): Promise<Omit<UserEntity, 'password' | 'recipes'>> {
-    return { id: payload.sub, username: payload.username };
+    const user = await this.usersService.getById(payload.sub);
+
+    if (!user) {
+      this.logger.error(
+        `Deleted user with token payload ${JSON.stringify(payload)} tried to login`,
+      );
+
+      throw new UnauthorizedException();
+    }
+
+    return { id: user.id, username: user.username };
   }
 }

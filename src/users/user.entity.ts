@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { RecipeEntity } from '../recipes/recipe.entity';
+import { RecipeEntity } from '../recipes/entities/recipe.entity';
 
 @Entity({ name: 'users' })
 export class UserEntity {

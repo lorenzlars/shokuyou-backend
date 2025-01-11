@@ -1,9 +1,14 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, Repository } from 'typeorm';
-import { IngredientEntity } from './ingredient.entity';
+import { EntityManager, ILike, Repository } from 'typeorm';
 import { PaginationSortOrder } from '../common/dto/paginationRequestFilterQueryDto';
 import { REQUEST } from '@nestjs/core';
+import { IngredientEntity } from './ingredient.entity';
 
 export type Ingredient = {
   name: string;
@@ -43,16 +48,37 @@ export class IngredientsService {
     return order;
   }
 
-  async create(data: Partial<IngredientEntity>): Promise<IngredientEntity> {
-    const ingredient = this.ingredientRepository.create({
+  async createIngredient(data: Ingredient, entityManager?: EntityManager) {
+    const repo = entityManager
+      ? entityManager.getRepository(IngredientEntity)
+      : this.ingredientRepository;
+
+    return repo.save({
       ...data,
       owner: { id: this.request.user.id },
     });
-
-    return this.ingredientRepository.save(ingredient);
   }
 
-  async getPage(filter: PaginationFilter) {
+  /**
+   * Creates and saves a list of ingredients to the database.
+   */
+  async createIngredients(
+    ingredients: Ingredient[],
+    entityManager?: EntityManager,
+  ) {
+    const repo = entityManager
+      ? entityManager.getRepository(IngredientEntity)
+      : this.ingredientRepository;
+
+    return repo.save(
+      ingredients.map((ingredient) => ({
+        ...ingredient,
+        owner: { id: this.request.user.id },
+      })),
+    );
+  }
+
+  async getIngredientPage(filter: PaginationFilter) {
     const [ingredients, total] = await this.ingredientRepository.findAndCount({
       order: this.createOrderQuery(filter),
       skip: (filter.page - 1) * filter.pageSize,
@@ -71,39 +97,55 @@ export class IngredientsService {
     };
   }
 
-  async findAll(): Promise<IngredientEntity[]> {
-    return this.ingredientRepository.find({
-      relations: ['recipes', 'owner'], // Load related entities if necessary
-    });
-  }
-
-  async findOne(id: string): Promise<IngredientEntity> {
+  async getIngredient(id: string) {
     const ingredient = await this.ingredientRepository.findOne({
       where: { id },
-      relations: ['recipes', 'owner'], // Load related entities if necessary
     });
 
     if (!ingredient) {
-      throw new NotFoundException(`Ingredient with ID "${id}" not found`);
+      throw new NotFoundException();
     }
 
     return ingredient;
   }
 
-  async update(
+  async updateIngredient(
     id: string,
-    data: Partial<IngredientEntity>,
-  ): Promise<IngredientEntity> {
-    const ingredient = await this.findOne(id); // Ensure ingredient exists
+    data: Partial<Ingredient>,
+    entityManager?: EntityManager,
+  ) {
+    const repo = entityManager
+      ? entityManager.getRepository(IngredientEntity)
+      : this.ingredientRepository;
 
-    Object.assign(ingredient, data);
-    return this.ingredientRepository.save(ingredient);
+    const ingredient = await repo.findOne({
+      where: { id },
+    });
+
+    if (!ingredient) {
+      throw new NotFoundException();
+    }
+
+    return repo.save({ ...ingredient, ...data });
   }
 
-  // Delete an ingredient by ID
-  async delete(id: string): Promise<void> {
-    const ingredient = await this.findOne(id); // Ensure ingredient exists
+  async removeIngredient(id: string, entityManager?: EntityManager) {
+    const repo = entityManager
+      ? entityManager.getRepository(IngredientEntity)
+      : this.ingredientRepository;
 
-    await this.ingredientRepository.remove(ingredient);
+    const ingredient = await repo.findOne({
+      where: { id },
+    });
+
+    if (!ingredient) {
+      throw new NotFoundException();
+    }
+
+    if (ingredient.recipes.length > 0) {
+      throw new ConflictException();
+    }
+
+    await repo.delete({ id });
   }
 }

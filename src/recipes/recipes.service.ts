@@ -7,14 +7,17 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, ILike, Repository } from 'typeorm';
-import { RecipeEntity } from './recipe.entity';
 import { PaginationSortOrder } from '../common/dto/paginationRequestFilterQueryDto';
 import { ImagesService } from '../images/images.service';
 import { REQUEST } from '@nestjs/core';
-import {
-  Ingredient,
-  IngredientsService,
-} from '../ingredients/ingredients.service';
+import { IngredientsService } from '../ingredients/ingredients.service';
+import { RecipeEntity } from './entities/recipe.entity';
+
+export type Ingredient = {
+  ingredientId: string;
+  unit: string;
+  amount: number;
+};
 
 export type Recipe = {
   name: string;
@@ -63,7 +66,7 @@ export class RecipesService {
     return order;
   }
 
-  async getPage(filter: PaginationFilter) {
+  async getRecipePage(filter: PaginationFilter) {
     const [recipes, total] = await this.recipeEntityRepository.findAndCount({
       order: this.createOrderQuery(filter),
       skip: (filter.page - 1) * filter.pageSize,
@@ -77,6 +80,7 @@ export class RecipesService {
 
     const content = recipes.map(({ image, ...recipe }) => ({
       ...recipe,
+      ingredients: [],
       imageUrl: image?.url,
     }));
 
@@ -87,45 +91,68 @@ export class RecipesService {
     };
   }
 
-  async getOne(id: string) {
+  async getRecipe(id: string) {
     const recipe = await this.recipeEntityRepository.findOne({
       where: {
         id,
         owner: { id: this.request.user.id },
       },
-      relations: ['image', 'ingredients'],
-      loadEagerRelations: false,
+      relations: {
+        image: true,
+        ingredients: true,
+      },
     });
 
     if (!recipe) {
       throw new NotFoundException();
     }
 
+    console.log(recipe);
+
     return {
       ...recipe,
+      ingredients: [],
       imageUrl: recipe.image?.url,
     };
   }
 
   async createRecipe(payload: Recipe) {
-    const recipe = this.recipeEntityRepository.create({
-      ...payload,
-      ingredients: [],
-      owner: { id: this.request.user.id },
-    });
+    const queryRunner = this.dataSource.createQueryRunner();
 
-    for (const ingredient of payload.ingredients) {
-      await this.ingredientsService.create({
-        ...ingredient,
-        recipes: [recipe],
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const recipe = await queryRunner.manager.save(RecipeEntity, {
+        ...payload,
+        owner: { id: this.request.user.id },
       });
-    }
 
-    return this.recipeEntityRepository.save(recipe);
+      // if (payload.ingredients) {
+      //   // TODO: Only create missing and link existing
+      //   await this.ingredientsService.createIngredients(
+      //     payload.ingredients.map((ingredient) => ({
+      //       ...ingredient,
+      //       recipes: [recipe],
+      //     })),
+      //     queryRunner.manager,
+      //   );
+      // }
+
+      await queryRunner.commitTransaction();
+
+      return this.getRecipe(recipe.id);
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async updateRecipe(id: string, recipe: Recipe) {
-    const currentRecipe = await this.getOne(id);
+    const currentRecipe = await this.getRecipe(id);
 
     if (!currentRecipe) {
       throw new NotFoundException();
@@ -225,6 +252,7 @@ export class RecipesService {
 
     return {
       ...updatedRecipe,
+      ingredients: [],
       imageUrl: updatedRecipe.image.url,
     };
   }
@@ -265,6 +293,7 @@ export class RecipesService {
 
     return {
       ...updatedRecipe,
+      ingredients: [],
       imageUrl: updatedRecipe.image.url,
     };
   }

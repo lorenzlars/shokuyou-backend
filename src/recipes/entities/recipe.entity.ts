@@ -5,12 +5,11 @@ import {
   JoinColumn,
   OneToOne,
   ManyToOne,
-  ManyToMany,
-  JoinTable,
+  OneToMany,
 } from 'typeorm';
-import { ImageEntity } from '../images/image.entity';
-import { UserEntity } from '../users/user.entity';
-import { IngredientEntity } from '../ingredients/ingredient.entity';
+import { RecipeIngredientEntity } from './recipeIngredient.entity';
+import { ImageEntity } from '../../images/image.entity';
+import { UserEntity } from '../../users/user.entity';
 
 @Entity({ name: 'recipes' })
 export class RecipeEntity {
@@ -32,9 +31,12 @@ export class RecipeEntity {
   @Column({ nullable: true })
   duration?: number;
 
-  @ManyToMany(() => RecipeEntity, { nullable: true })
-  @JoinTable()
-  ingredients?: IngredientEntity[];
+  @OneToMany(
+    () => RecipeIngredientEntity,
+    (recipeIngredient) => recipeIngredient.ingredient,
+    { nullable: true, eager: true, cascade: true },
+  )
+  ingredients?: RecipeIngredientEntity[];
 
   @Column({ nullable: true })
   instructions?: string;
@@ -45,7 +47,7 @@ export class RecipeEntity {
   @Column({ nullable: true })
   notes?: string;
 
-  @OneToOne(() => ImageEntity, { nullable: true })
+  @OneToOne(() => ImageEntity, { nullable: true, eager: true })
   @JoinColumn()
   image?: ImageEntity;
 

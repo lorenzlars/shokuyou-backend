@@ -11,7 +11,19 @@ export class UsersService {
     private userRepository: Repository<UserEntity>,
   ) {}
 
-  async findOne(username: string) {
+  async getById(id: string) {
+    const user = this.userRepository.findOne({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException();
+    }
+
+    return user;
+  }
+
+  async getByUsername(username: string) {
     const user = this.userRepository.findOne({
       where: {
         username,

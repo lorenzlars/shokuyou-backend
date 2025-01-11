@@ -2,17 +2,15 @@ import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
-  JoinColumn,
-  OneToOne,
   ManyToOne,
-  ManyToMany,
-  JoinTable,
+  Index,
+  OneToMany,
 } from 'typeorm';
-import { ImageEntity } from '../images/image.entity';
 import { UserEntity } from '../users/user.entity';
-import { RecipeEntity } from '../recipes/recipe.entity';
+import { RecipeIngredientEntity } from '../recipes/entities/recipeIngredient.entity';
 
 @Entity({ name: 'ingredients' })
+@Index('unique_name_unit', ['id', 'name', 'owner'], { unique: true })
 export class IngredientEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -20,9 +18,15 @@ export class IngredientEntity {
   @Column()
   name: string;
 
-  @ManyToMany(() => RecipeEntity)
-  @JoinTable()
-  recipes: RecipeEntity[];
+  @OneToMany(
+    () => RecipeIngredientEntity,
+    (recipeIngredient) => recipeIngredient.ingredient,
+    {
+      nullable: true,
+      cascade: true,
+    },
+  )
+  recipes?: RecipeIngredientEntity[];
 
   @ManyToOne(() => UserEntity, (user) => user.recipes)
   owner: UserEntity;

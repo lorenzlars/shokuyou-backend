@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  NotImplementedException,
   Param,
   ParseUUIDPipe,
   Post,
@@ -14,6 +13,7 @@ import {
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiConflictResponse,
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -54,7 +54,7 @@ export class IngredientsController {
   @TransformResponse(IngredientResponseDto)
   @Post()
   async createIngredient(@Body() ingredientRequestDto: IngredientRequestDto) {
-    return await this.ingredientsService.create(ingredientRequestDto);
+    return await this.ingredientsService.createIngredient(ingredientRequestDto);
   }
 
   @ApiOperation({
@@ -69,7 +69,7 @@ export class IngredientsController {
   async getIngredient(
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<IngredientResponseDto> {
-    throw new NotImplementedException();
+    return await this.ingredientsService.getIngredient(id);
   }
 
   @ApiOperation({
@@ -84,7 +84,7 @@ export class IngredientsController {
   async getIngredients(
     @Query() filter: PaginationRequestFilterQueryDto,
   ): Promise<PaginationResponseDto<IngredientResponseDto>> {
-    return await this.ingredientsService.getPage(filter);
+    return await this.ingredientsService.getIngredientPage(filter);
   }
 
   @ApiOperation({
@@ -101,8 +101,12 @@ export class IngredientsController {
   @Put(':id')
   async updateIngredient(
     @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() ingredientRequestDto: IngredientRequestDto,
   ): Promise<IngredientResponseDto> {
-    throw new NotImplementedException();
+    return await this.ingredientsService.updateIngredient(
+      id,
+      ingredientRequestDto,
+    );
   }
 
   @ApiOperation({
@@ -110,8 +114,9 @@ export class IngredientsController {
   })
   @ApiOkResponse({ description: 'Successfully deleted the ingredient' })
   @ApiNotFoundResponse({ description: 'Ingredient not found' })
+  @ApiConflictResponse({ description: 'Ingredient is in use' })
   @Delete(':id')
   async deleteIngredient(@Param('id', new ParseUUIDPipe()) id: string) {
-    throw new NotImplementedException();
+    await this.ingredientsService.removeIngredient(id);
   }
 }
