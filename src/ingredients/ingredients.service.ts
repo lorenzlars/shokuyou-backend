@@ -145,13 +145,16 @@ export class IngredientsService {
 
     const ingredient = await repo.findOne({
       where: { id },
+      relations: {
+        recipes: true,
+      },
     });
 
     if (!ingredient) {
       throw new NotFoundException();
     }
 
-    if (ingredient.recipes.length > 0) {
+    if (ingredient.recipes && ingredient.recipes.length > 0) {
       throw new ConflictException();
     }
 
