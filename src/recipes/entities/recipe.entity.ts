@@ -33,7 +33,7 @@ export class RecipeEntity {
 
   @OneToMany(
     () => RecipeIngredientEntity,
-    (recipeIngredient) => recipeIngredient.ingredient,
+    (recipeIngredient) => recipeIngredient.recipe,
     { nullable: true, eager: true, cascade: true },
   )
   ingredients?: RecipeIngredientEntity[];

@@ -1,4 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 
 import { RecipeEntity } from './recipe.entity';
 import { IngredientEntity } from '../../ingredients/ingredient.entity';
@@ -10,6 +16,7 @@ export class RecipeIngredientEntity {
 
   @ManyToOne(() => IngredientEntity, (ingredient) => ingredient.recipes, {
     onDelete: 'CASCADE',
+    eager: true,
   })
   ingredient: IngredientEntity;
 

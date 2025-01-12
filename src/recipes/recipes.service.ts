@@ -99,10 +99,6 @@ export class RecipesService {
         id,
         owner: { id: this.request.user.id },
       },
-      relations: {
-        image: true,
-        ingredients: true,
-      },
     });
 
     if (!recipe) {
@@ -111,7 +107,11 @@ export class RecipesService {
 
     return {
       ...recipe,
-      ingredients: [],
+      ingredients: recipe.ingredients?.map((recipe_ingredient) => ({
+        name: recipe_ingredient.ingredient.name,
+        unit: recipe_ingredient.unit,
+        amount: recipe_ingredient.amount,
+      })),
       imageUrl: recipe.image?.url,
     };
   }
@@ -172,9 +172,10 @@ export class RecipesService {
     }
 
     // TODO: Update ingredients
+    const { ingredients: _ingredients, ...newRecipe } = recipe;
     const { image, ...updatedRecipe } = await this.recipeEntityRepository.save({
       ...currentRecipe,
-      ...{ ...recipe, ingredients: [] },
+      ...newRecipe,
     });
 
     return {

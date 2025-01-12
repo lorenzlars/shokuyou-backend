@@ -6,11 +6,6 @@ export class RecipeIngredientResponseDto {
   @ApiProperty()
   @IsString()
   @Expose()
-  id: string;
-
-  @ApiProperty()
-  @IsString()
-  @Expose()
   name: string;
 
   @ApiProperty()

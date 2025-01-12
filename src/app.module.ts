@@ -34,6 +34,7 @@ import { DevtoolsModule } from '@nestjs/devtools-integration';
         extra: {
           max: 20,
         },
+        logging: process.env.MODE === 'development',
       }),
     }),
     DevtoolsModule.register({
