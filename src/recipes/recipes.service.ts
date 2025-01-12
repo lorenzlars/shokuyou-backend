@@ -12,9 +12,11 @@ import { ImagesService } from '../images/images.service';
 import { REQUEST } from '@nestjs/core';
 import { IngredientsService } from '../ingredients/ingredients.service';
 import { RecipeEntity } from './entities/recipe.entity';
+import { RecipeIngredientEntity } from './entities/recipeIngredient.entity';
+import { mapObjectArray } from '../common/utils/arrayUtilities';
 
 export type Ingredient = {
-  ingredientId: string;
+  name: string;
   unit: string;
   amount: number;
 };
@@ -107,8 +109,6 @@ export class RecipesService {
       throw new NotFoundException();
     }
 
-    console.log(recipe);
-
     return {
       ...recipe,
       ingredients: [],
@@ -116,7 +116,7 @@ export class RecipesService {
     };
   }
 
-  async createRecipe(payload: Recipe) {
+  async createRecipe({ ingredients, ...payload }: Recipe) {
     const queryRunner = this.dataSource.createQueryRunner();
 
     await queryRunner.connect();
@@ -128,16 +128,29 @@ export class RecipesService {
         owner: { id: this.request.user.id },
       });
 
-      // if (payload.ingredients) {
-      //   // TODO: Only create missing and link existing
-      //   await this.ingredientsService.createIngredients(
-      //     payload.ingredients.map((ingredient) => ({
-      //       ...ingredient,
-      //       recipes: [recipe],
-      //     })),
-      //     queryRunner.manager,
-      //   );
-      // }
+      if (ingredients) {
+        const storedIngredients =
+          await this.ingredientsService.createMissingIngredients(
+            ingredients,
+            queryRunner.manager,
+          );
+
+        // Map ingrdients to recipe
+        const ingredientMappings = mapObjectArray(
+          storedIngredients,
+          ingredients,
+          'name',
+        );
+
+        await queryRunner.manager.save(
+          RecipeIngredientEntity,
+          ingredientMappings.map(([{ id }, { name: _name, ...metaData }]) => ({
+            ingredient: { id },
+            recipe: { id: recipe.id },
+            ...metaData,
+          })),
+        );
+      }
 
       await queryRunner.commitTransaction();
 

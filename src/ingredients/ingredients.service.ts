@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, ILike, Repository } from 'typeorm';
+import { EntityManager, ILike, In, Repository } from 'typeorm';
 import { PaginationSortOrder } from '../common/dto/paginationRequestFilterQueryDto';
 import { REQUEST } from '@nestjs/core';
 import { IngredientEntity } from './ingredient.entity';
@@ -59,10 +59,7 @@ export class IngredientsService {
     });
   }
 
-  /**
-   * Creates and saves a list of ingredients to the database.
-   */
-  async createIngredients(
+  async createMissingIngredients(
     ingredients: Ingredient[],
     entityManager?: EntityManager,
   ) {
@@ -70,12 +67,24 @@ export class IngredientsService {
       ? entityManager.getRepository(IngredientEntity)
       : this.ingredientRepository;
 
-    return repo.save(
-      ingredients.map((ingredient) => ({
+    const existing = await repo.findBy({
+      name: In(ingredients.map((ingredient) => ingredient.name)),
+    });
+    const existingNames = existing.map(
+      (existingIngredient) => existingIngredient.name,
+    );
+    const toCreateIngredients = ingredients.filter(
+      (ingredient) => !existingNames.includes(ingredient.name),
+    );
+
+    const created = await repo.save(
+      toCreateIngredients.map((ingredient) => ({
         ...ingredient,
         owner: { id: this.request.user.id },
       })),
     );
+
+    return [...existing, ...created];
   }
 
   async getIngredientPage(filter: PaginationFilter) {

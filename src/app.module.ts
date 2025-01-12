@@ -8,6 +8,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ResponseTransformInterceptor } from './common/interceptors/responseTransformInterceptor';
 import { RemoveEmptyInterceptor } from './common/interceptors/removeEmptyInterceptor';
 import { IngredientsModule } from './ingredients/ingredients.module';
+import { DevtoolsModule } from '@nestjs/devtools-integration';
 
 @Module({
   imports: [
@@ -34,6 +35,9 @@ import { IngredientsModule } from './ingredients/ingredients.module';
           max: 20,
         },
       }),
+    }),
+    DevtoolsModule.register({
+      http: process.env.MODE === 'development',
     }),
     RecipesModule,
     AuthModule,
