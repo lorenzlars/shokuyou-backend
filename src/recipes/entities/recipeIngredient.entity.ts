@@ -1,10 +1,4 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 
 import { RecipeEntity } from './recipe.entity';
 import { IngredientEntity } from '../../ingredients/ingredient.entity';
@@ -15,14 +9,11 @@ export class RecipeIngredientEntity {
   id: string;
 
   @ManyToOne(() => IngredientEntity, (ingredient) => ingredient.recipes, {
-    onDelete: 'CASCADE',
     eager: true,
   })
   ingredient: IngredientEntity;
 
-  @ManyToOne(() => RecipeEntity, (recipe) => recipe.ingredients, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => RecipeEntity, (recipe) => recipe.ingredients, {})
   recipe: RecipeEntity;
 
   @Column()

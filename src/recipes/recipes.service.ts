@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, ILike, Repository } from 'typeorm';
+import { DataSource, EntityManager, ILike, Repository } from 'typeorm';
 import { PaginationSortOrder } from '../common/dto/paginationRequestFilterQueryDto';
 import { ImagesService } from '../images/images.service';
 import { REQUEST } from '@nestjs/core';
@@ -129,26 +129,10 @@ export class RecipesService {
       });
 
       if (ingredients) {
-        const storedIngredients =
-          await this.ingredientsService.createMissingIngredients(
-            ingredients,
-            queryRunner.manager,
-          );
-
-        // Map ingrdients to recipe
-        const ingredientMappings = mapObjectArray(
-          storedIngredients,
+        await this.insertRecipeIngredients(
           ingredients,
-          'name',
-        );
-
-        await queryRunner.manager.save(
-          RecipeIngredientEntity,
-          ingredientMappings.map(([{ id }, { name: _name, ...metaData }]) => ({
-            ingredient: { id },
-            recipe: { id: recipe.id },
-            ...metaData,
-          })),
+          recipe.id,
+          queryRunner.manager,
         );
       }
 
@@ -164,24 +148,58 @@ export class RecipesService {
     }
   }
 
-  async updateRecipe(id: string, recipe: Recipe) {
-    const currentRecipe = await this.getRecipe(id);
+  async updateRecipe(id: string, { ingredients, ...recipe }: Recipe) {
+    const queryRunner = this.dataSource.createQueryRunner();
 
-    if (!currentRecipe) {
-      throw new NotFoundException();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const { ingredients: currentIngredients, ...currentRecipe } =
+        await queryRunner.manager.findOne(RecipeEntity, {
+          where: { id, owner: { id: this.request.user.id } },
+        });
+
+      if (!currentRecipe) {
+        throw new NotFoundException();
+      }
+
+      await queryRunner.manager.delete(RecipeIngredientEntity, {
+        recipe: { id: currentRecipe.id },
+      });
+
+      if (ingredients) {
+        await this.insertRecipeIngredients(
+          ingredients,
+          currentRecipe.id,
+          queryRunner.manager,
+        );
+      }
+
+      const { image, ...updatedRecipe } =
+        await this.recipeEntityRepository.save({
+          ...currentRecipe,
+          ...recipe,
+        });
+
+      await queryRunner.commitTransaction();
+
+      return {
+        ...updatedRecipe,
+        ingredients: updatedRecipe.ingredients?.map((recipe_ingredient) => ({
+          name: recipe_ingredient.ingredient.name,
+          unit: recipe_ingredient.unit,
+          amount: recipe_ingredient.amount,
+        })),
+        imageUrl: image?.url,
+      };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+
+      throw error;
+    } finally {
+      await queryRunner.release();
     }
-
-    // TODO: Update ingredients
-    const { ingredients: _ingredients, ...newRecipe } = recipe;
-    const { image, ...updatedRecipe } = await this.recipeEntityRepository.save({
-      ...currentRecipe,
-      ...newRecipe,
-    });
-
-    return {
-      ...updatedRecipe,
-      imageUrl: image?.url,
-    };
   }
 
   async removeRecipe(id: string) {
@@ -192,8 +210,7 @@ export class RecipesService {
 
     try {
       const recipe = await queryRunner.manager.findOne(RecipeEntity, {
-        where: { id },
-        relations: ['image'],
+        where: { id, owner: { id: this.request.user.id } },
       });
 
       if (!recipe) {
@@ -234,8 +251,7 @@ export class RecipesService {
 
     try {
       const recipe = await queryRunner.manager.findOne(RecipeEntity, {
-        where: { id },
-        relations: ['image'],
+        where: { id, owner: { id: this.request.user.id } },
       });
 
       if (!recipe) {
@@ -280,8 +296,7 @@ export class RecipesService {
 
     try {
       const recipe = await queryRunner.manager.findOne(RecipeEntity, {
-        where: { id },
-        relations: ['image'],
+        where: { id, owner: { id: this.request.user.id } },
       });
 
       if (!recipe) {
@@ -320,8 +335,7 @@ export class RecipesService {
 
     try {
       const recipe = await queryRunner.manager.findOne(RecipeEntity, {
-        where: { id },
-        relations: ['image'],
+        where: { id, owner: { id: this.request.user.id } },
       });
 
       if (!recipe) {
@@ -345,5 +359,32 @@ export class RecipesService {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  private async insertRecipeIngredients(
+    ingredients: Ingredient[],
+    recipeId: string,
+    entityManager: EntityManager,
+  ) {
+    const storedIngredients =
+      await this.ingredientsService.createMissingIngredients(
+        ingredients,
+        entityManager,
+      );
+
+    const ingredientMappings = mapObjectArray(
+      storedIngredients,
+      ingredients,
+      'name',
+    );
+
+    await entityManager.save(
+      RecipeIngredientEntity,
+      ingredientMappings.map(([{ id }, { name, ...metaData }]) => ({
+        ingredient: { id },
+        recipe: { id: recipeId },
+        ...metaData,
+      })),
+    );
   }
 }

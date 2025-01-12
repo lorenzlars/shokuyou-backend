@@ -5,10 +5,8 @@ export type RequestUser = {
   username: string;
 };
 
-export const User = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest();
+export const User = createParamDecorator((_, ctx: ExecutionContext) => {
+  const request = ctx.switchToHttp().getRequest();
 
-    return request.user;
-  },
-);
+  return request.user;
+});

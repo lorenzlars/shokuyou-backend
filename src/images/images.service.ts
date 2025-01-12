@@ -68,11 +68,15 @@ export class ImagesService {
 
   async addImage(
     file: Express.Multer.File,
-    entityManager: EntityManager,
+    entityManager?: EntityManager,
   ): Promise<ImageEntity> {
+    const repo = entityManager
+      ? entityManager.getRepository(ImageEntity)
+      : this.imageRepository;
+
     const uploadResponse = await this.uploadImageFile(file);
 
-    return await entityManager.save(ImageEntity, {
+    return await repo.save({
       publicId: uploadResponse.public_id,
       url: uploadResponse.url,
     });
@@ -81,9 +85,13 @@ export class ImagesService {
   async updateImage(
     id: string,
     file: Express.Multer.File,
-    entityManager: EntityManager,
+    entityManager?: EntityManager,
   ) {
-    const image = await entityManager.findOne(ImageEntity, {
+    const repo = entityManager
+      ? entityManager.getRepository(ImageEntity)
+      : this.imageRepository;
+
+    const image = await repo.findOne({
       where: { id },
     });
 
@@ -95,15 +103,19 @@ export class ImagesService {
 
     await this.deleteImageFile(image.publicId);
 
-    return await entityManager.save(ImageEntity, {
+    return await repo.save({
       ...image,
       publicId: uploadResponse.public_id,
       url: uploadResponse.url,
     });
   }
 
-  async removeImage(id: string, entityManager: EntityManager) {
-    const image = await entityManager.findOne(ImageEntity, {
+  async removeImage(id: string, entityManager?: EntityManager) {
+    const repo = entityManager
+      ? entityManager.getRepository(ImageEntity)
+      : this.imageRepository;
+
+    const image = await repo.findOne({
       where: { id },
     });
 
@@ -113,7 +125,7 @@ export class ImagesService {
 
     await this.deleteImageFile(image.publicId);
 
-    const result = await entityManager.delete(ImageEntity, { id: image.id });
+    const result = await repo.delete({ id: image.id });
 
     if (result.affected === 0) {
       throw new NotFoundException();
