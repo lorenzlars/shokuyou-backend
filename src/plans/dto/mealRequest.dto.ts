@@ -7,10 +7,10 @@ export class MealRequestDto {
   @IsNotEmpty()
   dayIndex: number;
 
-  @ApiProperty()
-  @IsNumber()
-  @IsNotEmpty()
-  timeIndex: number;
+  // @ApiProperty()
+  // @IsNumber()
+  // @IsNotEmpty()
+  // timeIndex: number;
 
   @ApiProperty()
   @IsString()

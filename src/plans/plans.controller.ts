@@ -8,7 +8,6 @@ import {
   UseGuards,
   NotImplementedException,
   Put,
-  Query,
 } from '@nestjs/common';
 import { PlansService } from './plans.service';
 import {
@@ -18,7 +17,6 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiQuery,
   ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
@@ -26,9 +24,9 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PlanRequestDto } from './dto/planRequest.dto';
 import { TransformResponse } from '../common/interceptors/responseTransformInterceptor';
 import { PlanResponseDto } from './dto/planResponse.dto';
-import { ApiPaginatedResponse } from '../common/decorators/apiPaginationResponse';
-import { PaginationRequestFilterQueryDto } from '../common/dto/paginationRequestFilterQueryDto';
-import { PaginationResponseDto } from '../common/dto/paginationResponse.dto';
+import { PlanResponseSimpleDto } from './dto/planResponseSimple.dto';
+import { ListResponseDto } from '../common/dto/listResponse.dto';
+import { ApiListResponse } from '../common/decorators/apiListResponse';
 
 @ApiTags('plans')
 @ApiSecurity('access-token')
@@ -53,7 +51,13 @@ export class PlansController {
   @TransformResponse(PlanResponseDto)
   @Post()
   createPlan(@Body() planRequestDto: PlanRequestDto) {
-    return this.plansService.create(planRequestDto);
+    return this.plansService.create({
+      ...planRequestDto,
+      meals: planRequestDto.meals.map((meal) => ({
+        ...meal,
+        recipe: { id: meal.recipeId },
+      })),
+    });
   }
 
   @ApiOperation({
@@ -65,21 +69,18 @@ export class PlansController {
   @ApiNotFoundResponse()
   @TransformResponse(PlanResponseDto)
   @Get(':id')
-  getPlan(@Param('id') _id: string) {
-    throw new NotImplementedException();
+  getPlan(@Param('id') id: string) {
+    return this.plansService.findOne(id);
   }
 
   @ApiOperation({
     operationId: 'getPlans',
   })
-  @ApiPaginatedResponse(PlanResponseDto)
-  @ApiQuery({
-    type: PaginationRequestFilterQueryDto,
-  })
-  @TransformResponse(PaginationResponseDto<PlanResponseDto>)
+  @ApiListResponse(PlanResponseSimpleDto)
+  @TransformResponse(ListResponseDto<PlanResponseSimpleDto>)
   @Get()
-  getPlans(@Query() filter: PaginationRequestFilterQueryDto) {
-    return this.plansService.findAll(filter);
+  getPlans(): Promise<ListResponseDto<PlanResponseSimpleDto>> {
+    return this.plansService.findAll();
   }
 
   @ApiOperation({

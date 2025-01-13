@@ -14,7 +14,6 @@ export class PlanRequestDto {
     type: MealRequestDto,
     isArray: true,
   })
-  @IsString()
   @IsArray()
   @IsOptional()
   @Type(() => MealRequestDto)

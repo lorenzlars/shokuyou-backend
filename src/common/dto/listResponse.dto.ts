@@ -1,9 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PaginationRequestFilterQueryDto } from './paginationRequestFilterQuery.dto';
 import { IsArray, IsNumber } from 'class-validator';
 import { Expose } from 'class-transformer';
 
-export class PaginationResponseDto<T> extends PaginationRequestFilterQueryDto {
+export class ListResponseDto<T> {
   // eslint-disable-next-line @darraghor/nestjs-typed/validated-non-primitive-property-needs-type-decorator
   @ApiProperty({
     isArray: true,

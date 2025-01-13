@@ -23,7 +23,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ApiPaginatedResponse } from '../common/decorators/apiPaginationResponse';
-import { PaginationRequestFilterQueryDto } from '../common/dto/paginationRequestFilterQueryDto';
+import { PaginationRequestFilterQueryDto } from '../common/dto/paginationRequestFilterQuery.dto';
 import { TransformResponse } from '../common/interceptors/responseTransformInterceptor';
 import { PaginationResponseDto } from '../common/dto/paginationResponse.dto';
 import { IngredientResponseDto } from './dto/ingredientResponse.dto';

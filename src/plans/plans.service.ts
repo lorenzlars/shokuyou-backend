@@ -1,22 +1,19 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PlanRequestDto } from './dto/planRequest.dto';
-import { DataSource, ILike, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { REQUEST } from '@nestjs/core';
 import { MealEntity } from './entities/meal.entity';
 import { PlanEntity } from './entities/plan.entity';
-import { PaginationSortOrder } from '../common/dto/paginationRequestFilterQueryDto';
+
+type Meal = {
+  dayIndex: number;
+  recipe: { id: string };
+};
 
 type Plan = {
   name: string;
-};
-
-type PaginationFilter = {
-  page: number;
-  pageSize: number;
-  orderBy?: string;
-  sortOrder?: PaginationSortOrder;
-  filter?: string;
+  meals: Meal[];
 };
 
 @Injectable()
@@ -41,25 +38,22 @@ export class PlansService {
     });
   }
 
-  async findAll(filter: PaginationFilter) {
-    const [plans, total] = await this.planEntityRepository.findAndCount({
-      skip: (filter.page - 1) * filter.pageSize,
-      take: filter.pageSize,
-      where: {
-        name: filter.filter ? ILike(`%${filter.filter}%`) : undefined,
-        owner: { id: this.request.user.id },
-      },
-    });
+  async findAll() {
+    const [content, total] = await this.planEntityRepository.findAndCount();
 
     return {
-      ...filter,
-      content: plans,
+      content,
       total,
     };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} plan`;
+  findOne(id: string) {
+    return this.planEntityRepository.findOne({
+      where: {
+        id,
+        owner: { id: this.request.user.id },
+      },
+    });
   }
 
   update(id: number, _planRequestDto: PlanRequestDto) {

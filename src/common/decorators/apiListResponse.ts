@@ -1,17 +1,15 @@
 import { applyDecorators, Type } from '@nestjs/common';
-import { ApiExtraModels } from '@nestjs/swagger';
-import { ApiOkResponse } from '@nestjs/swagger';
-import { getSchemaPath } from '@nestjs/swagger';
-import { PaginationResponseDto } from '../dto/paginationResponse.dto';
+import { ApiExtraModels, ApiOkResponse, getSchemaPath } from '@nestjs/swagger';
+import { ListResponseDto } from '../dto/listResponse.dto';
 
 // https://docs.nestjs.com/openapi/operations#advanced-generic-apiresponse
-export const ApiPaginatedResponse = <TModel extends Type>(model: TModel) => {
+export const ApiListResponse = <TModel extends Type>(model: TModel) => {
   return applyDecorators(
-    ApiExtraModels(PaginationResponseDto, model),
+    ApiExtraModels(ListResponseDto, model),
     ApiOkResponse({
       schema: {
         allOf: [
-          { $ref: getSchemaPath(PaginationResponseDto) },
+          { $ref: getSchemaPath(ListResponseDto) },
           {
             properties: {
               content: {

@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, ILike, In, Repository } from 'typeorm';
-import { PaginationSortOrder } from '../common/dto/paginationRequestFilterQueryDto';
+import { PaginationSortOrder } from '../common/dto/paginationRequestFilterQuery.dto';
 import { REQUEST } from '@nestjs/core';
 import { IngredientEntity } from './ingredient.entity';
 
@@ -108,7 +108,10 @@ export class IngredientsService {
 
   async getIngredient(id: string) {
     const ingredient = await this.ingredientRepository.findOne({
-      where: { id },
+      where: {
+        id,
+        owner: { id: this.request.user.id },
+      },
     });
 
     if (!ingredient) {

@@ -29,7 +29,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { PaginationRequestFilterQueryDto } from '../common/dto/paginationRequestFilterQueryDto';
+import { PaginationRequestFilterQueryDto } from '../common/dto/paginationRequestFilterQuery.dto';
 import { ApiPaginatedResponse } from '../common/decorators/apiPaginationResponse';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { RecipeResponseDto } from './dto/recipeResponse.dto';

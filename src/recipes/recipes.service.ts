@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, ILike, Repository } from 'typeorm';
-import { PaginationSortOrder } from '../common/dto/paginationRequestFilterQueryDto';
+import { PaginationSortOrder } from '../common/dto/paginationRequestFilterQuery.dto';
 import { ImagesService } from '../images/images.service';
 import { REQUEST } from '@nestjs/core';
 import { IngredientsService } from '../ingredients/ingredients.service';

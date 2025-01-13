@@ -16,8 +16,8 @@ export class MealEntity {
   @Column()
   dayIndex: number;
 
-  @Column()
-  timeIndex: number;
+  // @Column()
+  // timeIndex: number;
 
   @OneToMany(() => RecipeEntity, (recipe) => recipe.meals, {
     eager: true,
