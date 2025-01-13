@@ -8,6 +8,7 @@ import {
   UseGuards,
   NotImplementedException,
   Put,
+  Query,
 } from '@nestjs/common';
 import { PlansService } from './plans.service';
 import {
@@ -17,6 +18,7 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
@@ -24,6 +26,9 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PlanRequestDto } from './dto/planRequest.dto';
 import { TransformResponse } from '../common/interceptors/responseTransformInterceptor';
 import { PlanResponseDto } from './dto/planResponse.dto';
+import { ApiPaginatedResponse } from '../common/decorators/apiPaginationResponse';
+import { PaginationRequestFilterQueryDto } from '../common/dto/paginationRequestFilterQueryDto';
+import { PaginationResponseDto } from '../common/dto/paginationResponse.dto';
 
 @ApiTags('plans')
 @ApiSecurity('access-token')
@@ -47,20 +52,39 @@ export class PlansController {
   })
   @TransformResponse(PlanResponseDto)
   @Post()
-  create(@Body() _planRequestDto: PlanRequestDto) {
-    throw new NotImplementedException();
+  createPlan(@Body() planRequestDto: PlanRequestDto) {
+    return this.plansService.create(planRequestDto);
   }
 
+  @ApiOperation({
+    operationId: 'getPlan',
+  })
   @ApiOkResponse({
     type: PlanResponseDto,
   })
   @ApiNotFoundResponse()
   @TransformResponse(PlanResponseDto)
   @Get(':id')
-  findOne(@Param('id') _id: string) {
+  getPlan(@Param('id') _id: string) {
     throw new NotImplementedException();
   }
 
+  @ApiOperation({
+    operationId: 'getPlans',
+  })
+  @ApiPaginatedResponse(PlanResponseDto)
+  @ApiQuery({
+    type: PaginationRequestFilterQueryDto,
+  })
+  @TransformResponse(PaginationResponseDto<PlanResponseDto>)
+  @Get()
+  getPlans(@Query() filter: PaginationRequestFilterQueryDto) {
+    return this.plansService.findAll(filter);
+  }
+
+  @ApiOperation({
+    operationId: 'updatePlan',
+  })
   @ApiOkResponse({
     type: PlanResponseDto,
   })
@@ -70,14 +94,17 @@ export class PlansController {
   })
   @TransformResponse(PlanResponseDto)
   @Put(':id')
-  update(@Param('id') _id: string, @Body() _updatePlanDto: PlanRequestDto) {
+  updatePlan(@Param('id') _id: string, @Body() _updatePlanDto: PlanRequestDto) {
     throw new NotImplementedException();
   }
 
+  @ApiOperation({
+    operationId: 'removePlan',
+  })
   @ApiOkResponse()
   @ApiNotFoundResponse()
   @Delete(':id')
-  remove(@Param('id') _id: string) {
+  removePlan(@Param('id') _id: string) {
     throw new NotImplementedException();
   }
 }
