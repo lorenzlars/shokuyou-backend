@@ -31,7 +31,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   // TODO: Imrove typing and don't use the UserEntity
   async validate(
     payload: any,
-  ): Promise<Omit<UserEntity, 'password' | 'recipes'>> {
+  ): Promise<Omit<UserEntity, 'password' | 'recipes' | 'plans'>> {
     const user = await this.usersService.getById(payload.sub);
 
     if (!user) {

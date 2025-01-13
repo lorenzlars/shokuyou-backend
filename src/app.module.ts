@@ -9,6 +9,7 @@ import { ResponseTransformInterceptor } from './common/interceptors/responseTran
 import { RemoveEmptyInterceptor } from './common/interceptors/removeEmptyInterceptor';
 import { IngredientsModule } from './ingredients/ingredients.module';
 import { DevtoolsModule } from '@nestjs/devtools-integration';
+import { PlansModule } from './plans/plans.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { DevtoolsModule } from '@nestjs/devtools-integration';
     AuthModule,
     UsersModule,
     IngredientsModule,
+    PlansModule,
   ],
   providers: [
     {

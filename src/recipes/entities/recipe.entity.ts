@@ -10,6 +10,7 @@ import {
 import { RecipeIngredientEntity } from './recipeIngredient.entity';
 import { ImageEntity } from '../../images/image.entity';
 import { UserEntity } from '../../users/user.entity';
+import { MealEntity } from '../../plans/entities/meal.entity';
 
 @Entity({ name: 'recipes' })
 export class RecipeEntity {
@@ -50,6 +51,11 @@ export class RecipeEntity {
   @OneToOne(() => ImageEntity, { nullable: true, eager: true })
   @JoinColumn()
   image?: ImageEntity;
+
+  @ManyToOne(() => MealEntity, (meal) => meal.recipe, {
+    nullable: true,
+  })
+  meals?: MealEntity[];
 
   @ManyToOne(() => UserEntity, (user) => user.recipes)
   owner: UserEntity;
