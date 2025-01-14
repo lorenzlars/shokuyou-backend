@@ -31,12 +31,11 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PaginationRequestFilterQueryDto } from '../common/dto/paginationRequestFilterQuery.dto';
-import { ApiPaginatedResponse } from '../common/decorators/apiPaginationResponse';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { RecipeResponseDto } from './dto/recipeResponse.dto';
 import { RecipeRequestDto } from './dto/recipeRequest.dto';
-import { PaginationResponseDto } from '../common/dto/paginationResponse.dto';
 import { TransformResponse } from '../common/interceptors/responseTransformInterceptor';
+import { RecipePaginatedResponseDto } from './dto/recipePaginatedResponse.dto';
 
 @ApiTags('recipes')
 @ApiSecurity('access-token')
@@ -89,15 +88,17 @@ export class RecipesController {
     summary: 'Get all recipes with pagination',
     operationId: 'getRecipes',
   })
-  @ApiPaginatedResponse(RecipeResponseDto)
+  @ApiOkResponse({
+    type: RecipePaginatedResponseDto,
+  })
   @ApiQuery({
     type: PaginationRequestFilterQueryDto,
   })
-  @TransformResponse(PaginationResponseDto<RecipeResponseDto>)
+  @TransformResponse(RecipePaginatedResponseDto)
   @Get()
   async getRecipes(
     @Query() filter: PaginationRequestFilterQueryDto,
-  ): Promise<PaginationResponseDto<RecipeResponseDto>> {
+  ): Promise<RecipePaginatedResponseDto> {
     return await this.recipesService.getRecipePage(filter);
   }
 

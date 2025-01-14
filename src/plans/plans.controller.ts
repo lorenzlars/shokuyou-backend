@@ -23,10 +23,8 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PlanRequestDto } from './dto/planRequest.dto';
 import { TransformResponse } from '../common/interceptors/responseTransformInterceptor';
 import { PlanResponseDto } from './dto/planResponse.dto';
-import { PlanResponseSimpleDto } from './dto/planResponseSimple.dto';
-import { ListResponseDto } from '../common/dto/listResponse.dto';
-import { ApiListResponse } from '../common/decorators/apiListResponse';
 import { CreatePlanDto } from './dto/createPlan.dto';
+import { PlanResponsePaginatedSimpleDto } from './dto/planResponsePaginatedSimple.dto';
 
 @ApiTags('plans')
 @ApiSecurity('access-token')
@@ -70,10 +68,12 @@ export class PlansController {
   @ApiOperation({
     operationId: 'getPlans',
   })
-  @ApiListResponse(PlanResponseSimpleDto)
-  // @TransformResponse(ListResponseDto<PlanResponseSimpleDto>)
+  @ApiOkResponse({
+    type: PlanResponsePaginatedSimpleDto,
+  })
+  @TransformResponse(PlanResponsePaginatedSimpleDto)
   @Get()
-  async getPlans(): Promise<ListResponseDto<PlanResponseSimpleDto>> {
+  async getPlans(): Promise<PlanResponsePaginatedSimpleDto> {
     return await this.plansService.findAll();
   }
 

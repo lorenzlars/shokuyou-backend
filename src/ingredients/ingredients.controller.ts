@@ -22,14 +22,13 @@ import {
   ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
-import { ApiPaginatedResponse } from '../common/decorators/apiPaginationResponse';
 import { PaginationRequestFilterQueryDto } from '../common/dto/paginationRequestFilterQuery.dto';
 import { TransformResponse } from '../common/interceptors/responseTransformInterceptor';
-import { PaginationResponseDto } from '../common/dto/paginationResponse.dto';
 import { IngredientResponseDto } from './dto/ingredientResponse.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { IngredientsService } from './ingredients.service';
 import { IngredientRequestDto } from './dto/ingredientRequest.dto';
+import { IngredientPaginatedResponseDto } from './dto/ingredientPaginatedResponse.dto';
 
 @ApiTags('ingredients')
 @ApiSecurity('access-token')
@@ -75,15 +74,17 @@ export class IngredientsController {
   @ApiOperation({
     operationId: 'getIngredients',
   })
-  @ApiPaginatedResponse(IngredientResponseDto)
+  @ApiOkResponse({
+    type: IngredientPaginatedResponseDto,
+  })
   @ApiQuery({
     type: PaginationRequestFilterQueryDto,
   })
-  @TransformResponse(PaginationResponseDto<IngredientResponseDto>)
+  @TransformResponse(IngredientPaginatedResponseDto)
   @Get()
   async getIngredients(
     @Query() filter: PaginationRequestFilterQueryDto,
-  ): Promise<PaginationResponseDto<IngredientResponseDto>> {
+  ): Promise<IngredientPaginatedResponseDto> {
     return await this.ingredientsService.getIngredientPage(filter);
   }
 
