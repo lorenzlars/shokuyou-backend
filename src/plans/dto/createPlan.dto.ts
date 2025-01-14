@@ -9,36 +9,29 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class PlanRequestMealDto {
+export class CreatePlanMealDto {
   @ApiProperty()
   @IsNumber()
-  @IsNotEmpty()
   dayIndex: number;
-
-  // @ApiProperty()
-  // @IsNumber()
-  // @IsNotEmpty()
-  // timeIndex: number;
 
   @ApiProperty()
   @IsString()
   @IsUUID()
-  @IsNotEmpty()
   recipeId: string;
 }
 
-export class PlanRequestDto {
+export class CreatePlanDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
   name: string;
 
   @ApiPropertyOptional({
-    type: PlanRequestMealDto,
+    type: CreatePlanMealDto,
     isArray: true,
   })
   @IsArray()
   @IsOptional()
-  @Type(() => PlanRequestMealDto)
-  meals?: PlanRequestMealDto[];
+  @Type(() => CreatePlanMealDto)
+  meals?: CreatePlanMealDto[];
 }

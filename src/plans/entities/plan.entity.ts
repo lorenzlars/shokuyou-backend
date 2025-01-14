@@ -19,7 +19,7 @@ export class PlanEntity {
 
   @OneToMany(() => MealEntity, (meal) => meal.plan, {
     nullable: true,
-    eager: true,
+    cascade: true,
   })
   @JoinColumn()
   meals?: MealEntity[];

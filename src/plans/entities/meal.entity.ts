@@ -1,10 +1,4 @@
-import {
-  Column,
-  Entity,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { PlanEntity } from './plan.entity';
 import { RecipeEntity } from '../../recipes/entities/recipe.entity';
 
@@ -19,9 +13,7 @@ export class MealEntity {
   // @Column()
   // timeIndex: number;
 
-  @OneToMany(() => RecipeEntity, (recipe) => recipe.meals, {
-    eager: true,
-  })
+  @ManyToOne(() => RecipeEntity, (recipe) => recipe.meals)
   recipe: RecipeEntity;
 
   @ManyToOne(() => PlanEntity, (plan) => plan.meals)

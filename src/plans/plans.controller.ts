@@ -27,6 +27,7 @@ import { PlanResponseDto } from './dto/planResponse.dto';
 import { PlanResponseSimpleDto } from './dto/planResponseSimple.dto';
 import { ListResponseDto } from '../common/dto/listResponse.dto';
 import { ApiListResponse } from '../common/decorators/apiListResponse';
+import { CreatePlanDto } from './dto/createPlan.dto';
 
 @ApiTags('plans')
 @ApiSecurity('access-token')
@@ -46,18 +47,12 @@ export class PlansController {
     type: PlanResponseDto,
   })
   @ApiBody({
-    type: PlanRequestDto,
+    type: CreatePlanDto,
   })
   @TransformResponse(PlanResponseDto)
   @Post()
-  createPlan(@Body() planRequestDto: PlanRequestDto) {
-    return this.plansService.create({
-      ...planRequestDto,
-      meals: planRequestDto.meals.map((meal) => ({
-        ...meal,
-        recipe: { id: meal.recipeId },
-      })),
-    });
+  async createPlan(@Body() createPlanDto: CreatePlanDto) {
+    return await this.plansService.create(createPlanDto);
   }
 
   @ApiOperation({
@@ -69,18 +64,18 @@ export class PlansController {
   @ApiNotFoundResponse()
   @TransformResponse(PlanResponseDto)
   @Get(':id')
-  getPlan(@Param('id') id: string) {
-    return this.plansService.findOne(id);
+  async getPlan(@Param('id') id: string) {
+    return await this.plansService.findOne(id);
   }
 
   @ApiOperation({
     operationId: 'getPlans',
   })
   @ApiListResponse(PlanResponseSimpleDto)
-  @TransformResponse(ListResponseDto<PlanResponseSimpleDto>)
+  // @TransformResponse(ListResponseDto<PlanResponseSimpleDto>)
   @Get()
-  getPlans(): Promise<ListResponseDto<PlanResponseSimpleDto>> {
-    return this.plansService.findAll();
+  async getPlans(): Promise<ListResponseDto<PlanResponseSimpleDto>> {
+    return await this.plansService.findAll();
   }
 
   @ApiOperation({
@@ -105,7 +100,7 @@ export class PlansController {
   @ApiOkResponse()
   @ApiNotFoundResponse()
   @Delete(':id')
-  removePlan(@Param('id') _id: string) {
-    throw new NotImplementedException();
+  async removePlan(@Param('id') id: string) {
+    return await this.plansService.remove(id);
   }
 }

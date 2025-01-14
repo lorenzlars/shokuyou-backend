@@ -1,20 +1,11 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PlanRequestDto } from './dto/planRequest.dto';
 import { DataSource, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { REQUEST } from '@nestjs/core';
 import { MealEntity } from './entities/meal.entity';
 import { PlanEntity } from './entities/plan.entity';
-
-type Meal = {
-  dayIndex: number;
-  recipe: { id: string };
-};
-
-type Plan = {
-  name: string;
-  meals: Meal[];
-};
+import { CreatePlanDto } from './dto/createPlan.dto';
 
 @Injectable()
 export class PlansService {
@@ -31,15 +22,30 @@ export class PlansService {
     @Inject(REQUEST) private readonly request: Request & { user: any },
   ) {}
 
-  async create(plan: Plan) {
-    return await this.planEntityRepository.save({
+  async create(plan: CreatePlanDto) {
+    const meals = plan.meals.map((meal) => ({
+      ...meal,
+      recipe: { id: meal.recipeId },
+    }));
+
+    const createdMeal = await this.planEntityRepository.save({
       ...plan,
+      meals,
       owner: { id: this.request.user.id },
+    });
+
+    return await this.planEntityRepository.findOne({
+      where: { id: createdMeal.id },
+      relations: ['meals', 'meals.recipe'],
     });
   }
 
   async findAll() {
-    const [content, total] = await this.planEntityRepository.findAndCount();
+    const [content, total] = await this.planEntityRepository.findAndCount({
+      where: {
+        owner: { id: this.request.user.id },
+      },
+    });
 
     return {
       content,
@@ -47,20 +53,36 @@ export class PlansService {
     };
   }
 
-  findOne(id: string) {
-    return this.planEntityRepository.findOne({
+  async findOne(id: string) {
+    const plan = await this.planEntityRepository.findOne({
       where: {
         id,
         owner: { id: this.request.user.id },
       },
+      relations: ['meals', 'meals.recipe'],
     });
+
+    if (!plan) {
+      throw new NotFoundException();
+    }
+
+    return plan;
   }
 
   update(id: number, _planRequestDto: PlanRequestDto) {
     return `This action updates a #${id} plan`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} plan`;
+  async remove(id: string) {
+    const plan = await this.planEntityRepository.findOne({
+      where: {
+        id,
+        owner: { id: this.request.user.id },
+      },
+    });
+
+    if (!plan) {
+      throw new NotFoundException();
+    }
   }
 }
