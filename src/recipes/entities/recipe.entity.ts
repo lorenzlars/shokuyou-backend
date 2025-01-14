@@ -52,7 +52,7 @@ export class RecipeEntity {
   @JoinColumn()
   image?: ImageEntity;
 
-  @ManyToOne(() => MealEntity, (meal) => meal.recipe, {
+  @OneToMany(() => MealEntity, (meal) => meal.recipe, {
     nullable: true,
   })
   meals?: MealEntity[];

@@ -1,8 +1,2 @@
-# Backend
+# Shokuyou backend
 
-## Create controller
-
-```shell
-nest generate module recipes
-nest generate controller recipes
-```

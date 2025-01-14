@@ -19,6 +19,7 @@ import { RecipesService } from './recipes.service';
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiConflictResponse,
   ApiConsumes,
   ApiCreatedResponse,
   ApiNotFoundResponse,
@@ -131,6 +132,9 @@ export class RecipesController {
   })
   @ApiOkResponse({
     description: 'Successfully deleted the recipe',
+  })
+  @ApiConflictResponse({
+    description: 'Recipe is in use by a plan',
   })
   @ApiNotFoundResponse({
     description: 'Recipe not found',

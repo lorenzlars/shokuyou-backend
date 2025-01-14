@@ -16,3 +16,7 @@ export function mapObjectArray<
 
   return Array.from(targetMap.values());
 }
+
+export function removeDuplicates(strings: string[]) {
+  return [...new Set(strings)];
+}

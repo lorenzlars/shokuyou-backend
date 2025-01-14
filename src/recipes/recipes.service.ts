@@ -73,7 +73,6 @@ export class RecipesService {
       order: this.createOrderQuery(filter),
       skip: (filter.page - 1) * filter.pageSize,
       take: filter.pageSize,
-      relations: ['image', 'ingredients'],
       where: {
         name: filter.filter ? ILike(`%${filter.filter}%`) : undefined, // TODO: Is filter sanitized?
         owner: { id: this.request.user.id },
@@ -99,6 +98,7 @@ export class RecipesService {
         id,
         owner: { id: this.request.user.id },
       },
+      relations: ['ingredients'],
     });
 
     if (!recipe) {
@@ -210,11 +210,19 @@ export class RecipesService {
 
     try {
       const recipe = await queryRunner.manager.findOne(RecipeEntity, {
-        where: { id, owner: { id: this.request.user.id } },
+        where: {
+          id,
+          owner: { id: this.request.user.id },
+        },
+        relations: ['meals'],
       });
 
       if (!recipe) {
         throw new NotFoundException();
+      }
+
+      if (recipe.meals.length > 0) {
+        throw new ConflictException();
       }
 
       const imageId = recipe.image?.id;

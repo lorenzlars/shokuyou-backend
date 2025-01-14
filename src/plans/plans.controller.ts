@@ -6,7 +6,6 @@ import {
   Param,
   Delete,
   UseGuards,
-  NotImplementedException,
   Put,
 } from '@nestjs/common';
 import { PlansService } from './plans.service';
@@ -90,8 +89,11 @@ export class PlansController {
   })
   @TransformResponse(PlanResponseDto)
   @Put(':id')
-  updatePlan(@Param('id') _id: string, @Body() _updatePlanDto: PlanRequestDto) {
-    throw new NotImplementedException();
+  async updatePlan(
+    @Param('id') id: string,
+    @Body() updatePlanDto: PlanRequestDto,
+  ) {
+    return await this.plansService.update(id, updatePlanDto);
   }
 
   @ApiOperation({

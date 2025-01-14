@@ -1,11 +1,17 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PlanRequestDto } from './dto/planRequest.dto';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { REQUEST } from '@nestjs/core';
-import { MealEntity } from './entities/meal.entity';
 import { PlanEntity } from './entities/plan.entity';
 import { CreatePlanDto } from './dto/createPlan.dto';
+import { RecipeEntity } from '../recipes/entities/recipe.entity';
+import { removeDuplicates } from '../common/utils/arrayUtilities';
 
 @Injectable()
 export class PlansService {
@@ -15,21 +21,23 @@ export class PlansService {
     @InjectRepository(PlanEntity)
     private planEntityRepository: Repository<PlanEntity>,
 
-    @InjectRepository(MealEntity)
-    private mealEntityRepository: Repository<MealEntity>,
+    @InjectRepository(RecipeEntity)
+    private recipeEntityRepository: Repository<RecipeEntity>,
 
     // TODO: How to add the user into the type correctly
     @Inject(REQUEST) private readonly request: Request & { user: any },
   ) {}
 
-  async create(plan: CreatePlanDto) {
-    const meals = plan.meals.map((meal) => ({
+  async create(createPlanDto: CreatePlanDto) {
+    await this.checkRecipseExistence(createPlanDto);
+
+    const meals = createPlanDto.meals?.map((meal) => ({
       ...meal,
       recipe: { id: meal.recipeId },
     }));
 
     const createdMeal = await this.planEntityRepository.save({
-      ...plan,
+      ...createPlanDto,
       meals,
       owner: { id: this.request.user.id },
     });
@@ -69,8 +77,35 @@ export class PlansService {
     return plan;
   }
 
-  update(id: number, _planRequestDto: PlanRequestDto) {
-    return `This action updates a #${id} plan`;
+  async update(id: string, planRequestDto: PlanRequestDto) {
+    await this.checkRecipseExistence(planRequestDto);
+
+    const currentPlan = await this.planEntityRepository.findOne({
+      where: {
+        id,
+        owner: { id: this.request.user.id },
+      },
+    });
+
+    if (!currentPlan) {
+      throw new NotFoundException();
+    }
+
+    const meals = planRequestDto.meals?.map((meal) => ({
+      ...meal,
+      recipe: { id: meal.recipeId },
+    }));
+
+    await this.planEntityRepository.save({
+      ...planRequestDto,
+      meals,
+      id,
+    });
+
+    return await this.planEntityRepository.findOne({
+      where: { id },
+      relations: ['meals', 'meals.recipe'],
+    });
   }
 
   async remove(id: string) {
@@ -83,6 +118,22 @@ export class PlansService {
 
     if (!plan) {
       throw new NotFoundException();
+    }
+
+    await this.planEntityRepository.delete({ id });
+  }
+
+  private async checkRecipseExistence(plan: PlanRequestDto) {
+    const recipeIds = removeDuplicates(plan.meals.map((meal) => meal.recipeId));
+    const recipse = await this.recipeEntityRepository.find({
+      where: {
+        id: In(recipeIds),
+        owner: { id: this.request.user.id },
+      },
+    });
+
+    if (recipse.length !== recipeIds.length) {
+      throw new ConflictException();
     }
   }
 }

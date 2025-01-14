@@ -13,7 +13,7 @@ export class RecipeIngredientEntity {
   })
   ingredient: IngredientEntity;
 
-  @ManyToOne(() => RecipeEntity, (recipe) => recipe.ingredients, {})
+  @ManyToOne(() => RecipeEntity, (recipe) => recipe.ingredients)
   recipe: RecipeEntity;
 
   @Column()

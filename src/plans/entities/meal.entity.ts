@@ -1,4 +1,10 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { PlanEntity } from './plan.entity';
 import { RecipeEntity } from '../../recipes/entities/recipe.entity';
 
@@ -14,6 +20,7 @@ export class MealEntity {
   // timeIndex: number;
 
   @ManyToOne(() => RecipeEntity, (recipe) => recipe.meals)
+  @JoinColumn()
   recipe: RecipeEntity;
 
   @ManyToOne(() => PlanEntity, (plan) => plan.meals)
