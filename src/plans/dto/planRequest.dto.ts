@@ -33,6 +33,10 @@ export class PlanRequestDto {
   @IsNotEmpty()
   name: string;
 
+  @ApiProperty()
+  @IsNumber()
+  days: number;
+
   @ApiPropertyOptional({
     type: PlanRequestMealDto,
     isArray: true,

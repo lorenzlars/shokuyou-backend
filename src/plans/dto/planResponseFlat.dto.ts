@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber } from 'class-validator';
 import { Expose } from 'class-transformer';
 
 export class PlanResponseFlatDto {
@@ -13,4 +13,9 @@ export class PlanResponseFlatDto {
   @IsNotEmpty()
   @Expose()
   name: string;
+
+  @ApiProperty()
+  @IsNumber()
+  @Expose()
+  days: number;
 }

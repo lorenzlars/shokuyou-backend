@@ -17,6 +17,9 @@ export class PlanEntity {
   @Column()
   name: string;
 
+  @Column()
+  days: number;
+
   @OneToMany(() => MealEntity, (meal) => meal.plan, {
     nullable: true,
     cascade: true,

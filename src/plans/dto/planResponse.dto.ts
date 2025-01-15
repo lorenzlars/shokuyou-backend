@@ -133,6 +133,11 @@ export class PlanResponseDto {
   @Expose()
   name: string;
 
+  @ApiProperty()
+  @IsNumber()
+  @Expose()
+  days: number;
+
   @ApiPropertyOptional({
     description: 'The plan meals',
     type: PlanResponseMealDto,

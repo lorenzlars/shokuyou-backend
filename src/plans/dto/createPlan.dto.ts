@@ -26,6 +26,10 @@ export class CreatePlanDto {
   @IsNotEmpty()
   name: string;
 
+  @ApiProperty()
+  @IsNumber()
+  days: number;
+
   @ApiPropertyOptional({
     type: CreatePlanMealDto,
     isArray: true,

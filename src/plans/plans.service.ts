@@ -120,7 +120,7 @@ export class PlansService {
       throw new NotFoundException();
     }
 
-    await this.planEntityRepository.delete({ id });
+    await this.planEntityRepository.delete(plan);
   }
 
   private async checkRecipseExistence(plan: PlanRequestDto) {

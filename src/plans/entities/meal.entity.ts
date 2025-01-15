@@ -13,6 +13,7 @@ export class MealEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  // TODO: validate days set in plan
   @Column()
   dayIndex: number;
 
@@ -23,6 +24,8 @@ export class MealEntity {
   @JoinColumn()
   recipe: RecipeEntity;
 
-  @ManyToOne(() => PlanEntity, (plan) => plan.meals)
+  @ManyToOne(() => PlanEntity, (plan) => plan.meals, {
+    onDelete: 'CASCADE',
+  })
   plan: PlanEntity;
 }
