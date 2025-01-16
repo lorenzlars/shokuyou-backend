@@ -3,6 +3,8 @@ import { Exclude } from 'class-transformer';
 import { RecipeEntity } from '../recipes/entities/recipe.entity';
 import { PlanEntity } from '../plans/entities/plan.entity';
 import { IngredientEntity } from '../ingredients/ingredient.entity';
+import { ScheduledMealEntity } from '../scheduled_meals/entities/scheduled_meal.entity';
+import { ProductEntity } from '../products/entities/product.entity';
 
 @Entity({ name: 'users' })
 export class UserEntity {
@@ -24,4 +26,10 @@ export class UserEntity {
 
   @OneToMany(() => IngredientEntity, (ingredient) => ingredient.owner)
   ingredients?: IngredientEntity[];
+
+  @OneToMany(() => ProductEntity, (product) => product.owner)
+  products?: ProductEntity[];
+
+  @OneToMany(() => ScheduledMealEntity, (scheduledMeal) => scheduledMeal.owner)
+  scheduledMeals?: ScheduledMealEntity[];
 }

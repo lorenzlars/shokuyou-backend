@@ -6,11 +6,13 @@ import {
   OneToOne,
   ManyToOne,
   OneToMany,
+  ManyToMany,
 } from 'typeorm';
 import { RecipeIngredientEntity } from './recipeIngredient.entity';
 import { ImageEntity } from '../../images/image.entity';
 import { UserEntity } from '../../users/user.entity';
 import { MealEntity } from '../../plans/entities/meal.entity';
+import { ProductEntity } from '../../products/entities/product.entity';
 
 @Entity({ name: 'recipes' })
 export class RecipeEntity {
@@ -59,4 +61,7 @@ export class RecipeEntity {
 
   @ManyToOne(() => UserEntity, (user) => user.recipes)
   owner: UserEntity;
+
+  @ManyToMany(() => ProductEntity, (product) => product.recipes)
+  products: string;
 }

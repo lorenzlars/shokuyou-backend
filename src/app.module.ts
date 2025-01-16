@@ -11,6 +11,8 @@ import { IngredientsModule } from './ingredients/ingredients.module';
 import { DevtoolsModule } from '@nestjs/devtools-integration';
 import { PlansModule } from './plans/plans.module';
 import { DataModule } from './data/data.module';
+import { ProductsModule } from './products/products.module';
+import { ScheduledMealsModule } from './scheduled_meals/scheduled_meals.module';
 
 @Module({
   imports: [
@@ -48,6 +50,8 @@ import { DataModule } from './data/data.module';
     IngredientsModule,
     PlansModule,
     DataModule,
+    ProductsModule,
+    ScheduledMealsModule,
   ],
   providers: [
     {
