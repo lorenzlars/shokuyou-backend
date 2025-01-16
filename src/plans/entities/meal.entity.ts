@@ -18,8 +18,8 @@ export class MealEntity {
   @Column()
   dayIndex: number;
 
-  // @Column()
-  // timeIndex: number;
+  @Column({ type: 'timestamp', nullable: true })
+  timestamp?: string;
 
   @ManyToOne(() => RecipeEntity, (recipe) => recipe.meals)
   @JoinColumn()
