@@ -97,11 +97,18 @@ export class IngredientsService {
         name: filter.filter ? ILike(`%${filter.filter}%`) : undefined, // TODO: Is filter sanitized?
         owner: { id: this.request.user.id },
       },
+      relations: ['recipes', 'recipes.recipe'],
     });
 
     return {
       ...filter,
-      content: ingredients.map((ingredient) => ({ ...ingredient })), // TODO: Why is this needed by the transformer?
+      content: ingredients.map((ingredient) => ({
+        ...ingredient,
+        recipes: ingredient.recipes?.map((recipeIngredient) => ({
+          id: recipeIngredient?.recipe?.id,
+          name: recipeIngredient?.recipe?.name,
+        })),
+      })), // TODO: Why is this needed by the transformer?
       total,
     };
   }
@@ -112,13 +119,20 @@ export class IngredientsService {
         id,
         owner: { id: this.request.user.id },
       },
+      relations: ['recipes', 'recipes.recipe'],
     });
 
     if (!ingredient) {
       throw new NotFoundException();
     }
 
-    return ingredient;
+    return {
+      ...ingredient,
+      recipes: ingredient.recipes?.map((recipeIngredient) => ({
+        id: recipeIngredient?.recipe?.id,
+        name: recipeIngredient?.recipe?.name,
+      })),
+    };
   }
 
   async updateIngredient(
@@ -138,7 +152,15 @@ export class IngredientsService {
       throw new NotFoundException();
     }
 
-    return repo.save({ ...ingredient, ...data });
+    const updatedIngredient = await repo.save({ ...ingredient, ...data });
+
+    return {
+      ...updatedIngredient,
+      recipes: ingredient.recipes?.map((recipeIngredient) => ({
+        id: recipeIngredient?.recipe?.id,
+        name: recipeIngredient?.recipe?.name,
+      })),
+    };
   }
 
   async removeIngredient(id: string, entityManager?: EntityManager) {
