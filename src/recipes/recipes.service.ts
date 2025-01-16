@@ -250,6 +250,7 @@ export class RecipesService {
     }
   }
 
+  // TODO: Should this moved into a new service?
   async addImage(id: string, file: Express.Multer.File) {
     const queryRunner = this.dataSource.createQueryRunner();
     let updatedRecipe: RecipeEntity;

@@ -10,6 +10,7 @@ import { RemoveEmptyInterceptor } from './common/interceptors/removeEmptyInterce
 import { IngredientsModule } from './ingredients/ingredients.module';
 import { DevtoolsModule } from '@nestjs/devtools-integration';
 import { PlansModule } from './plans/plans.module';
+import { DataModule } from './data/data.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { PlansModule } from './plans/plans.module';
     UsersModule,
     IngredientsModule,
     PlansModule,
+    DataModule,
   ],
   providers: [
     {

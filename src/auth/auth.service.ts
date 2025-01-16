@@ -24,7 +24,6 @@ export class AuthService {
     const user = await this.usersService.getByUsername(username);
 
     if (user && (await bcrypt.compare(password, user.password))) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...result } = user;
 
       return result;
@@ -46,6 +45,7 @@ export class AuthService {
       throw new ConflictException('User already exists');
     }
 
+    // TODO: Add salt env var?
     const hashedPassword = await bcrypt.hash(user.password, 10);
 
     return await this.usersService.create({
