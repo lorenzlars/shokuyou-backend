@@ -1,10 +1,21 @@
-import { Injectable } from '@nestjs/common';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
+import { Inject, Injectable } from '@nestjs/common';
+import { ProductRequestDto } from './dto/productRequest.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { REQUEST } from '@nestjs/core';
+import { ProductEntity } from './entities/product.entity';
 
 @Injectable()
 export class ProductsService {
-  create(_createProductDto: CreateProductDto) {
+  constructor(
+    @InjectRepository(ProductEntity)
+    private readonly productRepository: Repository<ProductEntity>,
+
+    // TODO: How to add the user into the type correctly
+    @Inject(REQUEST) private readonly request: Request & { user: any },
+  ) {}
+
+  create(_createProductDto: ProductRequestDto) {
     return 'This action adds a new product';
   }
 
@@ -16,7 +27,7 @@ export class ProductsService {
     return `This action returns a #${id} product`;
   }
 
-  update(id: number, _updateProductDto: UpdateProductDto) {
+  update(id: number, _updateProductDto: ProductRequestDto) {
     return `This action updates a #${id} product`;
   }
 

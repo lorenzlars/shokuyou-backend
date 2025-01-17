@@ -18,7 +18,6 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiQuery,
   ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
@@ -76,9 +75,6 @@ export class IngredientsController {
   })
   @ApiOkResponse({
     type: IngredientPaginatedResponseDto,
-  })
-  @ApiQuery({
-    type: PaginationRequestFilterQueryDto,
   })
   @TransformResponse(IngredientPaginatedResponseDto)
   @Get()
