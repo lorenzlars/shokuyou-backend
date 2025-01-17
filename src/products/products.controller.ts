@@ -64,8 +64,8 @@ export class ProductsController {
   })
   @TransformResponse(ProductPaginatedResponseDto)
   @Get()
-  getProducts(@Query() _filter: PaginationRequestFilterQueryDto) {
-    throw new NotImplementedException();
+  async getProducts(@Query() filter: PaginationRequestFilterQueryDto) {
+    return await this.productsService.findAll(filter);
   }
 
   @ApiOperation({

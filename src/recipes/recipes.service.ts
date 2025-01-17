@@ -5,18 +5,18 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { DataSource, EntityManager, ILike } from 'typeorm';
+import { DataSource, EntityManager, ILike, Repository } from 'typeorm';
 import { ImagesService } from '../images/images.service';
 import { REQUEST } from '@nestjs/core';
 import { IngredientsService } from '../ingredients/ingredients.service';
 import { RecipeEntity } from './entities/recipe.entity';
 import { RecipeIngredientEntity } from './entities/recipeIngredient.entity';
 import { mapObjectArray } from '../common/utils/arrayUtilities';
+import { InjectRepository } from '@nestjs/typeorm';
 import {
-  InjectPaginatedRepository,
-  PaginatedRepository,
+  paginatedFind,
   PaginationOptions,
-} from '../common/pagination/paginatedRepository';
+} from '../common/pagination/paginatedFind';
 
 export type Ingredient = {
   name: string;
@@ -42,22 +42,24 @@ export class RecipesService {
 
     private readonly ingredientsService: IngredientsService,
 
-    @InjectPaginatedRepository(RecipeEntity)
-    private recipeEntityRepository: PaginatedRepository<RecipeEntity>,
+    @InjectRepository(RecipeEntity)
+    private recipeEntityRepository: Repository<RecipeEntity>,
 
     // TODO: How to add the user into the type correctly
     @Inject(REQUEST) private readonly request: Request & { user: any },
   ) {}
 
   async getRecipePage(filter: PaginationOptions) {
-    const { content: recipes, ...rest } =
-      await this.recipeEntityRepository.paginate({
+    const { content: recipes, ...rest } = await paginatedFind(
+      this.recipeEntityRepository,
+      {
         options: filter,
         where: {
           name: filter.filter ? ILike(`%${filter.filter}%`) : undefined, // TODO: Is filter sanitized?
           owner: { id: this.request.user.id },
         },
-      });
+      },
+    );
 
     const content = recipes.map(({ image, ...recipe }) => ({
       ...recipe,

@@ -8,19 +8,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, ILike, In, Repository } from 'typeorm';
 import { REQUEST } from '@nestjs/core';
 import { IngredientEntity } from './ingredient.entity';
-import { PaginationSortOrder } from '../common/pagination/paginatedRepository';
+import {
+  paginatedFind,
+  PaginationOptions,
+} from '../common/pagination/paginatedFind';
 
 export type Ingredient = {
   name: string;
-};
-
-// TODO: Dublicate from recipe service, should be generic
-type PaginationFilter = {
-  page: number;
-  pageSize: number;
-  orderBy?: string;
-  sortOrder?: PaginationSortOrder;
-  filter?: string;
 };
 
 @Injectable()
@@ -32,21 +26,6 @@ export class IngredientsService {
     // TODO: How to add the user into the type correctly
     @Inject(REQUEST) private readonly request: Request & { user: any },
   ) {}
-
-  // TODO: Dublicate from recipe service, should be generic
-  private createOrderQuery(filter: PaginationFilter) {
-    const order: any = {};
-
-    if (filter.orderBy) {
-      order[filter.orderBy] = filter.sortOrder;
-
-      return order;
-    }
-
-    order.name = PaginationSortOrder.DESC;
-
-    return order;
-  }
 
   async createIngredient(data: Ingredient, entityManager?: EntityManager) {
     const repo = entityManager
@@ -87,21 +66,21 @@ export class IngredientsService {
     return [...existing, ...created];
   }
 
-  async getIngredientPage(filter: PaginationFilter) {
-    const [ingredients, total] = await this.ingredientRepository.findAndCount({
-      order: this.createOrderQuery(filter),
-      skip: (filter.page - 1) * filter.pageSize,
-      take: filter.pageSize,
-      where: {
-        // TODO: Dublicate from recipe service, should be generic
-        name: filter.filter ? ILike(`%${filter.filter}%`) : undefined, // TODO: Is filter sanitized?
-        owner: { id: this.request.user.id },
+  async getIngredientPage(filter: PaginationOptions) {
+    const { content: ingredients, ...rest } = await paginatedFind(
+      this.ingredientRepository,
+      {
+        options: filter,
+        where: {
+          name: filter.filter ? ILike(`%${filter.filter}%`) : undefined, // TODO: Is filter sanitized?
+          owner: { id: this.request.user.id },
+        },
+        relations: ['recipes', 'recipes.recipe'],
       },
-      relations: ['recipes', 'recipes.recipe'],
-    });
+    );
 
     return {
-      ...filter,
+      ...rest,
       content: ingredients.map((ingredient) => ({
         ...ingredient,
         recipes: ingredient.recipes?.map((recipeIngredient) => ({
@@ -109,7 +88,6 @@ export class IngredientsService {
           name: recipeIngredient?.recipe?.name,
         })),
       })), // TODO: Why is this needed by the transformer?
-      total,
     };
   }
 

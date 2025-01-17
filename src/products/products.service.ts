@@ -1,9 +1,13 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ProductRequestDto } from './dto/productRequest.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { REQUEST } from '@nestjs/core';
 import { ProductEntity } from './entities/product.entity';
+import {
+  paginatedFind,
+  PaginationOptions,
+} from '../common/pagination/paginatedFind';
 
 @Injectable()
 export class ProductsService {
@@ -22,8 +26,14 @@ export class ProductsService {
     });
   }
 
-  findAll() {
-    return `This action returns all products`;
+  async findAll(filter: PaginationOptions) {
+    return await paginatedFind(this.productRepository, {
+      options: filter,
+      where: {
+        name: filter.filter ? ILike(`%${filter.filter}%`) : undefined, // TODO: Is filter sanitized?
+        owner: { id: this.request.user.id },
+      },
+    });
   }
 
   async findOne(id: string) {

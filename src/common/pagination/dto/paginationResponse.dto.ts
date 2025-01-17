@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsNumber, IsOptional, Min } from 'class-validator';
 import { Expose } from 'class-transformer';
-import { PaginationSortOrder } from '../paginatedRepository';
+import { PaginationSortOrder } from '../paginatedFind';
 
 export abstract class PaginationResponseDto<T> {
   public abstract content: T[];

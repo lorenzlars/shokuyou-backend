@@ -1,46 +1,14 @@
-import { DataSource, FindOptionsWhere } from 'typeorm';
-import { DynamicModule, Inject, Module } from '@nestjs/common';
+import { DataSource } from 'typeorm';
 import { Repository } from 'typeorm/repository/Repository';
-
-export enum PaginationSortOrder {
-  ASC = 'ASC',
-  DESC = 'DESC',
-}
-
-export type PaginationOptions = {
-  page: number;
-  pageSize: number;
-  orderBy?: string;
-  sortOrder?: PaginationSortOrder;
-  filter?: string;
-};
-
-type PaginationFilter<T> = {
-  options: PaginationOptions;
-  where: FindOptionsWhere<T>;
-};
-
-type PaginationReturn<T> = Omit<PaginationOptions, 'filter'> & {
-  total: number;
-  content: T[];
-};
+import {
+  createOrderQuery,
+  PaginationFilter,
+  PaginationReturn,
+} from './paginatedFind';
+import { DynamicModule, Inject, Module } from '@nestjs/common';
 
 export interface PaginatedRepository<T> extends Repository<T> {
   paginate(filter: PaginationFilter<T>): Promise<PaginationReturn<T>>;
-}
-
-function createOrderQuery(filter: PaginationOptions) {
-  const order: any = {};
-
-  if (filter.orderBy) {
-    order[filter.orderBy] = filter.sortOrder;
-
-    return order;
-  }
-
-  order.name = PaginationSortOrder.DESC;
-
-  return order;
 }
 
 @Module({})

@@ -1,7 +1,7 @@
 import { IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { Expose } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { PaginationSortOrder } from '../paginatedRepository';
+import { PaginationSortOrder } from '../paginatedFind';
 
 export class PaginationRequestFilterQueryDto {
   @ApiProperty({
