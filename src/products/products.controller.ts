@@ -26,7 +26,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ProductResponseDto } from './dto/productResponse.dto';
 import { TransformResponse } from '../common/interceptors/responseTransformInterceptor';
 import { ProductPaginatedResponseDto } from './dto/productPaginatedResponse.dto';
-import { PaginationRequestFilterQueryDto } from '../common/dto/paginationRequestFilterQuery.dto';
+import { PaginationRequestFilterQueryDto } from '../common/pagination/dto/paginationRequestFilterQuery.dto';
 
 @ApiTags('products')
 @ApiSecurity('access-token')
@@ -98,13 +98,13 @@ export class ProductsController {
   }
 
   @ApiOperation({
-    operationId: 'removeProduct',
+    operationId: 'deleteProduct',
   })
   @ApiOkResponse()
   @ApiNotFoundResponse()
   @TransformResponse(ProductResponseDto)
   @Delete(':id')
-  removeProduct(@Param('id') _id: string) {
+  deleteProduct(@Param('id') _id: string) {
     throw new NotImplementedException();
   }
 }

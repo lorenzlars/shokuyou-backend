@@ -9,6 +9,7 @@ import { RecipeEntity } from './entities/recipe.entity';
 import { RecipeIngredientEntity } from './entities/recipeIngredient.entity';
 import { UsersModule } from '../users/users.module';
 import { ImportRecipesService } from '../data/importRecipes.service';
+import { PaginatedRepositoryModule } from '../common/pagination/paginatedRepository';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ImportRecipesService } from '../data/importRecipes.service';
     ImagesModule,
     IngredientsModule,
     TypeOrmModule.forFeature([RecipeEntity, RecipeIngredientEntity]),
+    PaginatedRepositoryModule.forFeature([RecipeEntity]),
   ],
   providers: [RecipesService, ImportRecipesService],
   controllers: [RecipesController],

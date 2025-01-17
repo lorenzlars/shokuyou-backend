@@ -1,13 +1,16 @@
-import { IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
-import { Expose } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEnum, IsNumber, IsOptional, Min } from 'class-validator';
+import { Expose } from 'class-transformer';
+import { PaginationSortOrder } from '../paginatedRepository';
 
-export enum PaginationSortOrder {
-  ASC = 'ASC',
-  DESC = 'DESC',
-}
+export abstract class PaginationResponseDto<T> {
+  public abstract content: T[];
 
-export class PaginationRequestFilterQueryDto {
+  @ApiProperty()
+  @Expose()
+  @IsNumber()
+  public total: number;
+
   @ApiProperty({
     description: 'The page number',
     default: 1,
@@ -42,12 +45,4 @@ export class PaginationRequestFilterQueryDto {
   @IsOptional()
   @IsEnum(PaginationSortOrder)
   public sortOrder?: PaginationSortOrder = PaginationSortOrder.DESC;
-
-  @ApiPropertyOptional({
-    description: 'The filter',
-  })
-  @Expose()
-  @IsOptional()
-  @IsString()
-  public filter?: string;
 }

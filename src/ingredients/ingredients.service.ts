@@ -6,9 +6,9 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, ILike, In, Repository } from 'typeorm';
-import { PaginationSortOrder } from '../common/dto/paginationRequestFilterQuery.dto';
 import { REQUEST } from '@nestjs/core';
 import { IngredientEntity } from './ingredient.entity';
+import { PaginationSortOrder } from '../common/pagination/paginatedRepository';
 
 export type Ingredient = {
   name: string;

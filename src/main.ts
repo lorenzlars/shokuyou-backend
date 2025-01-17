@@ -8,6 +8,7 @@ import {
 } from '@nestjs/swagger';
 
 import 'reflect-metadata';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { snapshot: true });
@@ -31,6 +32,8 @@ async function bootstrap() {
       },
     }),
   );
+
+  app.use(helmet());
 
   if (process.env.MODE === 'development') {
     const config = new DocumentBuilder()

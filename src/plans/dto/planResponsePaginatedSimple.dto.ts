@@ -1,5 +1,5 @@
 import { Expose, Type } from 'class-transformer';
-import { ListResponseDto } from '../../common/dto/listResponse.dto';
+import { ListResponseDto } from '../../common/pagination/dto/listResponse.dto';
 import { PlanResponseFlatDto } from './planResponseFlat.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray } from 'class-validator';

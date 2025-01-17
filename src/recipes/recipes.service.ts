@@ -5,15 +5,18 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, ILike, Repository } from 'typeorm';
-import { PaginationSortOrder } from '../common/dto/paginationRequestFilterQuery.dto';
+import { DataSource, EntityManager, ILike } from 'typeorm';
 import { ImagesService } from '../images/images.service';
 import { REQUEST } from '@nestjs/core';
 import { IngredientsService } from '../ingredients/ingredients.service';
 import { RecipeEntity } from './entities/recipe.entity';
 import { RecipeIngredientEntity } from './entities/recipeIngredient.entity';
 import { mapObjectArray } from '../common/utils/arrayUtilities';
+import {
+  InjectPaginatedRepository,
+  PaginatedRepository,
+  PaginationOptions,
+} from '../common/pagination/paginatedRepository';
 
 export type Ingredient = {
   name: string;
@@ -28,14 +31,6 @@ export type Recipe = {
   instructions?: string;
 };
 
-type PaginationFilter = {
-  page: number;
-  pageSize: number;
-  orderBy?: string;
-  sortOrder?: PaginationSortOrder;
-  filter?: string;
-};
-
 @Injectable()
 export class RecipesService {
   private readonly logger = new Logger(RecipesService.name);
@@ -47,37 +42,22 @@ export class RecipesService {
 
     private readonly ingredientsService: IngredientsService,
 
-    @InjectRepository(RecipeEntity)
-    private recipeEntityRepository: Repository<RecipeEntity>,
+    @InjectPaginatedRepository(RecipeEntity)
+    private recipeEntityRepository: PaginatedRepository<RecipeEntity>,
 
     // TODO: How to add the user into the type correctly
     @Inject(REQUEST) private readonly request: Request & { user: any },
   ) {}
 
-  private createOrderQuery(filter: PaginationFilter) {
-    const order: any = {};
-
-    if (filter.orderBy) {
-      order[filter.orderBy] = filter.sortOrder;
-
-      return order;
-    }
-
-    order.name = PaginationSortOrder.DESC;
-
-    return order;
-  }
-
-  async getRecipePage(filter: PaginationFilter) {
-    const [recipes, total] = await this.recipeEntityRepository.findAndCount({
-      order: this.createOrderQuery(filter),
-      skip: (filter.page - 1) * filter.pageSize,
-      take: filter.pageSize,
-      where: {
-        name: filter.filter ? ILike(`%${filter.filter}%`) : undefined, // TODO: Is filter sanitized?
-        owner: { id: this.request.user.id },
-      },
-    });
+  async getRecipePage(filter: PaginationOptions) {
+    const { content: recipes, ...rest } =
+      await this.recipeEntityRepository.paginate({
+        options: filter,
+        where: {
+          name: filter.filter ? ILike(`%${filter.filter}%`) : undefined, // TODO: Is filter sanitized?
+          owner: { id: this.request.user.id },
+        },
+      });
 
     const content = recipes.map(({ image, ...recipe }) => ({
       ...recipe,
@@ -86,9 +66,8 @@ export class RecipesService {
     }));
 
     return {
-      ...filter,
+      ...rest,
       content,
-      total,
     };
   }
 

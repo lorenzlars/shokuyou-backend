@@ -21,7 +21,7 @@ import {
   ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
-import { PaginationRequestFilterQueryDto } from '../common/dto/paginationRequestFilterQuery.dto';
+import { PaginationRequestFilterQueryDto } from '../common/pagination/dto/paginationRequestFilterQuery.dto';
 import { TransformResponse } from '../common/interceptors/responseTransformInterceptor';
 import { IngredientResponseDto } from './dto/ingredientResponse.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';

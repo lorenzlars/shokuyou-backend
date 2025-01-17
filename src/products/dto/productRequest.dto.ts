@@ -1,4 +1,4 @@
-import { IsNumber, IsString, Min } from 'class-validator';
+import { IsNumber, IsPositive, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class ProductRequestDto {
@@ -12,6 +12,6 @@ export class ProductRequestDto {
 
   @ApiProperty()
   @IsNumber()
-  @Min(0)
+  @IsPositive()
   amount: number;
 }
