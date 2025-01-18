@@ -5,10 +5,11 @@ import {
   Body,
   Param,
   Delete,
-  NotImplementedException,
   UseGuards,
   Put,
   Query,
+  NotImplementedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { ProductRequestDto } from './dto/productRequest.dto';
@@ -16,17 +17,27 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
+  ApiExtraModels,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiSecurity,
   ApiTags,
+  getSchemaPath,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ProductResponseDto } from './dto/productResponse.dto';
 import { TransformResponse } from '../common/interceptors/responseTransformInterceptor';
 import { ProductPaginatedResponseDto } from './dto/productPaginatedResponse.dto';
 import { PaginationRequestFilterQueryDto } from '../common/pagination/dto/paginationRequestFilterQuery.dto';
+import {
+  AddRecipesRequestDto,
+  AddProductRequestDto,
+  AddProductRequestType,
+} from './dto/addProductsRequests.dto';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
+import { AddProductsResponseDto } from './dto/addProductsResponse.dto';
 
 @ApiTags('products')
 @ApiSecurity('access-token')
@@ -45,15 +56,38 @@ export class ProductsController {
   })
   @ApiCreatedResponse({
     description: 'Product successfully created',
-    type: ProductResponseDto,
+    type: AddProductsResponseDto,
   })
+  @ApiExtraModels(AddProductRequestDto, AddRecipesRequestDto)
   @ApiBody({
-    type: ProductRequestDto,
+    schema: {
+      oneOf: [
+        { $ref: getSchemaPath(AddProductRequestDto) },
+        { $ref: getSchemaPath(AddRecipesRequestDto) },
+      ],
+    },
   })
-  @TransformResponse(ProductResponseDto)
+  @TransformResponse(AddProductsResponseDto)
   @Post()
-  createProduct(@Body() _createProductDto: ProductRequestDto) {
-    throw new NotImplementedException();
+  async createProduct(
+    @Body() addProductDto: AddProductRequestDto | AddRecipesRequestDto,
+  ): Promise<AddProductsResponseDto> {
+    switch (addProductDto.type) {
+      case AddProductRequestType.product:
+        const addProductRequestDto = plainToInstance(
+          AddProductRequestDto,
+          addProductDto,
+        );
+        await this.manualDtoValidation(addProductRequestDto);
+        throw new NotImplementedException();
+      case AddProductRequestType.recipes:
+        const addRecipesRequestDto = plainToInstance(
+          AddRecipesRequestDto,
+          addProductDto,
+        );
+        await this.manualDtoValidation(addRecipesRequestDto);
+        throw new NotImplementedException();
+    }
   }
 
   @ApiOperation({
@@ -64,8 +98,10 @@ export class ProductsController {
   })
   @TransformResponse(ProductPaginatedResponseDto)
   @Get()
-  async getProducts(@Query() filter: PaginationRequestFilterQueryDto) {
-    return await this.productsService.findAll(filter);
+  async getProducts(
+    @Query() _filter: PaginationRequestFilterQueryDto,
+  ): Promise<ProductPaginatedResponseDto> {
+    throw new NotImplementedException();
   }
 
   @ApiOperation({
@@ -77,7 +113,7 @@ export class ProductsController {
   @ApiNotFoundResponse()
   @TransformResponse(ProductResponseDto)
   @Get(':id')
-  getProduct(@Param('id') _id: string) {
+  async getProduct(@Param('id') _id: string): Promise<ProductResponseDto> {
     throw new NotImplementedException();
   }
 
@@ -90,10 +126,10 @@ export class ProductsController {
   @ApiNotFoundResponse()
   @TransformResponse(ProductResponseDto)
   @Put(':id')
-  updateProduct(
+  async updateProduct(
     @Param('id') _id: string,
     @Body() _updateProductDto: ProductRequestDto,
-  ) {
+  ): Promise<ProductResponseDto> {
     throw new NotImplementedException();
   }
 
@@ -104,7 +140,19 @@ export class ProductsController {
   @ApiNotFoundResponse()
   @TransformResponse(ProductResponseDto)
   @Delete(':id')
-  deleteProduct(@Param('id') _id: string) {
-    throw new NotImplementedException();
+  async deleteProduct(@Param('id') id: string) {
+    await this.productsService.removeProduct(id);
+  }
+
+  private async manualDtoValidation(dtoInstance: any) {
+    const errors = await validate(dtoInstance);
+
+    if (errors.length > 0) {
+      const errorMessages = errors.map((error) =>
+        Object.values(error.constraints || {}).join(', '),
+      );
+
+      throw new BadRequestException(errorMessages);
+    }
   }
 }

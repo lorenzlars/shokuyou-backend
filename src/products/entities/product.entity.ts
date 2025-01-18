@@ -1,12 +1,13 @@
 import {
   Column,
   Entity,
-  ManyToMany,
+  JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { UserEntity } from '../../users/user.entity';
-import { RecipeEntity } from '../../recipes/entities/recipe.entity';
+import { ProductLogEntity } from './productLog.entity';
 
 @Entity({ name: 'products' })
 export class ProductEntity {
@@ -22,9 +23,10 @@ export class ProductEntity {
   @Column()
   amount: number;
 
-  @ManyToMany(() => RecipeEntity, (recipe) => recipe.products)
-  recipes: string;
+  @OneToMany(() => ProductLogEntity, (productLog) => productLog.product)
+  log: ProductLogEntity[];
 
   @ManyToOne(() => UserEntity, (user) => user.products)
+  @JoinColumn()
   owner: UserEntity;
 }
