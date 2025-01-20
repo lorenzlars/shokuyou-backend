@@ -1,12 +1,6 @@
-import {
-  Column,
-  Entity,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
-import { MealEntity } from '../../plans/entities/meal.entity';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { UserEntity } from '../../users/user.entity';
+import { RecipeEntity } from '../../recipes/entities/recipe.entity';
 
 @Entity({ name: 'scheduled_meals' })
 export class ScheduledMealEntity {
@@ -19,8 +13,8 @@ export class ScheduledMealEntity {
   @Column()
   done?: boolean;
 
-  @OneToMany((): any => MealEntity, (meal: MealEntity) => meal.scheduless)
-  meal: MealEntity;
+  @ManyToOne(() => RecipeEntity, (recipe) => recipe.schedules)
+  recipe: RecipeEntity;
 
   @ManyToOne(() => UserEntity, (user) => user.scheduledMeals)
   owner: UserEntity;

@@ -5,7 +5,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { DataSource, EntityManager, ILike, Repository } from 'typeorm';
+import { DataSource, EntityManager, ILike, In, Repository } from 'typeorm';
 import { ImagesService } from '../images/images.service';
 import { REQUEST } from '@nestjs/core';
 import { IngredientsService } from '../ingredients/ingredients.service';
@@ -71,6 +71,30 @@ export class RecipesService {
       ...rest,
       content,
     };
+  }
+
+  async getRecipes(ids: string[]) {
+    const recipes = await this.recipeEntityRepository.find({
+      where: {
+        id: In(ids),
+        owner: { id: this.request.user.id },
+      },
+      relations: ['ingredients'],
+    });
+
+    if (recipes.length !== ids.length) {
+      throw new NotFoundException();
+    }
+
+    return recipes.map((recipe) => ({
+      ...recipe,
+      ingredients: recipe.ingredients?.map((recipe_ingredient) => ({
+        name: recipe_ingredient.ingredient.name,
+        unit: recipe_ingredient.unit,
+        amount: recipe_ingredient.amount,
+      })),
+      imageUrl: recipe.image?.url,
+    }));
   }
 
   async getRecipe(id: string) {

@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsEnum,
   IsNumber,
   IsObject,
   IsOptional,
@@ -8,14 +9,17 @@ import {
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
+import { MessageType } from '../entities/productLog.entity';
 
 export class LogEntryDto {
   @ApiProperty({
     description: 'The i18n message key',
+    enum: MessageType,
+    enumName: 'MessageType',
   })
-  @IsString()
+  @IsEnum({ enum: MessageType })
   @Expose()
-  messageKey: string;
+  messageType: MessageType;
 
   @ApiPropertyOptional({
     description: 'The i18n message properties',

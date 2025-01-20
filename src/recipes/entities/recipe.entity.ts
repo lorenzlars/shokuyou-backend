@@ -11,6 +11,7 @@ import { RecipeIngredientEntity } from './recipeIngredient.entity';
 import { ImageEntity } from '../../images/image.entity';
 import { UserEntity } from '../../users/user.entity';
 import { MealEntity } from '../../plans/entities/meal.entity';
+import { ScheduledMealEntity } from '../../scheduled_meals/entities/scheduled_meal.entity';
 
 @Entity({ name: 'recipes' })
 export class RecipeEntity {
@@ -56,6 +57,15 @@ export class RecipeEntity {
     nullable: true,
   })
   meals?: MealEntity[];
+
+  @OneToMany(
+    () => ScheduledMealEntity,
+    (scheduledMeal) => scheduledMeal.recipe,
+    {
+      nullable: true,
+    },
+  )
+  schedules?: ScheduledMealEntity[];
 
   @ManyToOne(() => UserEntity, (user) => user.recipes)
   owner: UserEntity;

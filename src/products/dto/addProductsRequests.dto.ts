@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsEnum,
   IsNumber,
   IsPositive,
   IsString,
@@ -24,11 +25,16 @@ interface AddRecipeRequest {
   recipeIds: string[];
 }
 
+export class AddProductBaseDto {
+  @IsEnum(AddProductRequestType)
+  type: AddProductRequestType;
+}
+
 export class AddProductRequestDto implements AddProductRequest {
   @ApiProperty({
     enum: AddProductRequestType,
-    default: AddProductRequestType.product,
     enumName: 'AddProductRequestType',
+    default: AddProductRequestType.product,
   })
   @IsString()
   type: AddProductRequestType.product;
@@ -50,14 +56,15 @@ export class AddProductRequestDto implements AddProductRequest {
 export class AddRecipesRequestDto implements AddRecipeRequest {
   @ApiProperty({
     enum: AddProductRequestType,
-    default: AddProductRequestType.recipes,
     enumName: 'AddProductRequestType',
+    default: AddProductRequestType.recipes,
   })
   @IsString()
-  readonly type: AddProductRequestType.recipes;
+  type: AddProductRequestType.recipes;
 
   @ApiProperty({
     isArray: true,
+    type: String,
   })
   @IsArray()
   @IsUUID('4', { each: true })

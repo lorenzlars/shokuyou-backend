@@ -8,7 +8,6 @@ import {
   UseGuards,
   Put,
   Query,
-  NotImplementedException,
   BadRequestException,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
@@ -34,6 +33,7 @@ import {
   AddRecipesRequestDto,
   AddProductRequestDto,
   AddProductRequestType,
+  AddProductBaseDto,
 } from './dto/addProductsRequests.dto';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
@@ -72,6 +72,12 @@ export class ProductsController {
   async createProduct(
     @Body() addProductDto: AddProductRequestDto | AddRecipesRequestDto,
   ): Promise<AddProductsResponseDto> {
+    const addProductRequestDto = plainToInstance(
+      AddProductBaseDto,
+      addProductDto,
+    );
+    await this.manualDtoValidation(addProductRequestDto);
+
     switch (addProductDto.type) {
       case AddProductRequestType.product:
         const addProductRequestDto = plainToInstance(
@@ -79,14 +85,20 @@ export class ProductsController {
           addProductDto,
         );
         await this.manualDtoValidation(addProductRequestDto);
-        throw new NotImplementedException();
+        const product =
+          await this.productsService.createProduct(addProductRequestDto);
+
+        return { products: [product] };
       case AddProductRequestType.recipes:
         const addRecipesRequestDto = plainToInstance(
           AddRecipesRequestDto,
           addProductDto,
         );
         await this.manualDtoValidation(addRecipesRequestDto);
-        throw new NotImplementedException();
+
+        return await this.productsService.createProductByRecipes(
+          addRecipesRequestDto.recipeIds,
+        );
     }
   }
 
@@ -99,9 +111,9 @@ export class ProductsController {
   @TransformResponse(ProductPaginatedResponseDto)
   @Get()
   async getProducts(
-    @Query() _filter: PaginationRequestFilterQueryDto,
+    @Query() filter: PaginationRequestFilterQueryDto,
   ): Promise<ProductPaginatedResponseDto> {
-    throw new NotImplementedException();
+    return await this.productsService.getProductsPage(filter);
   }
 
   @ApiOperation({
@@ -113,8 +125,8 @@ export class ProductsController {
   @ApiNotFoundResponse()
   @TransformResponse(ProductResponseDto)
   @Get(':id')
-  async getProduct(@Param('id') _id: string): Promise<ProductResponseDto> {
-    throw new NotImplementedException();
+  async getProduct(@Param('id') id: string): Promise<ProductResponseDto> {
+    return await this.productsService.getProduct(id);
   }
 
   @ApiOperation({
@@ -127,10 +139,10 @@ export class ProductsController {
   @TransformResponse(ProductResponseDto)
   @Put(':id')
   async updateProduct(
-    @Param('id') _id: string,
-    @Body() _updateProductDto: ProductRequestDto,
+    @Param('id') id: string,
+    @Body() updateProductDto: ProductRequestDto,
   ): Promise<ProductResponseDto> {
-    throw new NotImplementedException();
+    return await this.productsService.updateProduct(id, updateProductDto);
   }
 
   @ApiOperation({

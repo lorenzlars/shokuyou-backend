@@ -23,7 +23,10 @@ export class ProductEntity {
   @Column()
   amount: number;
 
-  @OneToMany(() => ProductLogEntity, (productLog) => productLog.product)
+  @OneToMany(() => ProductLogEntity, (productLog) => productLog.product, {
+    cascade: true,
+    eager: true,
+  })
   log: ProductLogEntity[];
 
   @ManyToOne(() => UserEntity, (user) => user.products)
