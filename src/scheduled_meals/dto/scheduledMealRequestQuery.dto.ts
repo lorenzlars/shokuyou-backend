@@ -1,7 +1,7 @@
 import { IsISO8601 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class ScheduledMealRequestDto {
+export class ScheduledMealRequestQueryDto {
   @ApiProperty()
   @IsISO8601()
   public from: string;

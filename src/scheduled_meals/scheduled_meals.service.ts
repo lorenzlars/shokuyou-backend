@@ -1,13 +1,14 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { ScheduledMealRequestDto } from './dto/scheduledMealRequestQuery.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
 import { ScheduledMealEntity } from './entities/scheduled_meal.entity';
 import { REQUEST } from '@nestjs/core';
+import { ScheduledMealRequestQueryDto } from './dto/scheduledMealRequestQuery.dto';
 
 type Meal = {
   datetime: string;
   recipeId: string;
+  done?: boolean;
 };
 
 @Injectable()
@@ -32,7 +33,7 @@ export class ScheduledMealsService {
     return { meals: createdMeals };
   }
 
-  async getScheduledMeals(filter: ScheduledMealRequestDto) {
+  async getScheduledMeals(filter: ScheduledMealRequestQueryDto) {
     const [content, total] = await this.scheduledMealRepository.findAndCount({
       where: {
         datetime: Between(filter.from, filter.to),
@@ -52,12 +53,39 @@ export class ScheduledMealsService {
     };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} scheduledMeal`;
+  async findOne(id: string) {
+    const schedule = await this.scheduledMealRepository.findOne({
+      where: {
+        id,
+        owner: { id: this.request.user.id },
+      },
+    });
+
+    if (!schedule) {
+      throw new NotFoundException();
+    }
+
+    return schedule;
   }
 
-  update(id: number) {
-    return `This action updates a #${id} scheduledMeal`;
+  async update(id: string, meal: Meal) {
+    const schedule = await this.scheduledMealRepository.findOne({
+      where: {
+        id,
+        owner: { id: this.request.user.id },
+      },
+    });
+
+    if (!schedule) {
+      throw new NotFoundException();
+    }
+
+    return await this.scheduledMealRepository.save({
+      ...schedule,
+      ...meal,
+      id,
+      recipe: { id: meal.recipeId ?? schedule.recipe.id },
+    });
   }
 
   async remove(id: string) {

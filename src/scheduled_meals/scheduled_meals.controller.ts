@@ -3,12 +3,11 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
-  NotImplementedException,
   UseGuards,
   Query,
+  Put,
 } from '@nestjs/common';
 import { ScheduledMealsService } from './scheduled_meals.service';
 import {
@@ -25,11 +24,11 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TransformResponse } from '../common/interceptors/responseTransformInterceptor';
 import { ScheduledMealResponseDto } from './dto/scheduledMealResponse.dto';
-import { UpdateScheduledMealRequestDto } from './dto/updateScheduledMealRequest.dto';
 import { ScheduledMealResponsePaginatedDto } from './dto/scheduledMealResponsePaginated.dto';
 import { CreateScheduledMealsRequestDto } from './dto/createScheduledMealsRequest.dto';
 import { CreateScheduledMealsResponseDto } from './dto/createScheduledMealsResponse.dto';
-import { ScheduledMealRequestDto } from './dto/scheduledMealRequestQuery.dto';
+import { ScheduledMealRequestQueryDto } from './dto/scheduledMealRequestQuery.dto';
+import { ScheduledMealRequestDto } from './dto/scheduledMealRequest.dto';
 
 @ApiTags('scheduled-meals')
 @ApiSecurity('access-token')
@@ -65,7 +64,7 @@ export class ScheduledMealsController {
     operationId: 'getScheduledMeals',
   })
   @ApiQuery({
-    type: ScheduledMealRequestDto,
+    type: ScheduledMealRequestQueryDto,
   })
   @ApiOkResponse({
     type: ScheduledMealResponsePaginatedDto,
@@ -73,7 +72,7 @@ export class ScheduledMealsController {
   @TransformResponse(ScheduledMealResponsePaginatedDto)
   @Get()
   async getScheduledMeals(
-    @Query() filter: ScheduledMealRequestDto,
+    @Query() filter: ScheduledMealRequestQueryDto,
   ): Promise<ScheduledMealResponsePaginatedDto> {
     return (await this.scheduledMealsService.getScheduledMeals(
       filter,
@@ -89,29 +88,29 @@ export class ScheduledMealsController {
   @ApiNotFoundResponse()
   @TransformResponse(ScheduledMealResponseDto)
   @Get(':id')
-  getScheduledMeal(
-    @Param('id') _id: string,
+  async getScheduledMeal(
+    @Param('id') id: string,
   ): Promise<ScheduledMealResponseDto> {
-    throw new NotImplementedException();
+    return await this.scheduledMealsService.findOne(id);
   }
 
   @ApiOperation({
     operationId: 'updateScheduledMeal',
   })
   @ApiBody({
-    type: UpdateScheduledMealRequestDto,
+    type: ScheduledMealRequestDto,
   })
   @ApiOkResponse({
     type: ScheduledMealResponseDto,
   })
   @ApiNotFoundResponse()
   @TransformResponse(ScheduledMealResponseDto)
-  @Patch(':id')
-  updateScheduledMeal(
-    @Param('id') _id: string,
-    @Body() _updateScheduledMealDto: UpdateScheduledMealRequestDto,
+  @Put(':id')
+  async updateScheduledMeal(
+    @Param('id') id: string,
+    @Body() updateScheduledMealDto: ScheduledMealRequestDto,
   ): Promise<ScheduledMealResponseDto> {
-    throw new NotImplementedException();
+    return await this.scheduledMealsService.update(id, updateScheduledMealDto);
   }
 
   @ApiOperation({
