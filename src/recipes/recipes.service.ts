@@ -55,7 +55,7 @@ export class RecipesService {
       {
         options: filter,
         where: {
-          name: filter.filter ? ILike(`%${filter.filter}%`) : undefined, // TODO: Is filter sanitized?
+          name: filter.filter ? ILike(`%${filter.filter}%`) : undefined,
           owner: { id: this.request.user.id },
         },
       },
@@ -79,7 +79,9 @@ export class RecipesService {
         id: In(ids),
         owner: { id: this.request.user.id },
       },
-      relations: ['ingredients'],
+      relations: {
+        ingredients: true,
+      },
     });
 
     if (recipes.length !== ids.length) {

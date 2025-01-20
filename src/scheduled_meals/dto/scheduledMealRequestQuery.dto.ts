@@ -1,8 +1,12 @@
 import { IsISO8601 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class UpdateScheduledMealRequestDto {
+export class ScheduledMealRequestDto {
   @ApiProperty()
   @IsISO8601()
-  public datetime: string;
+  public from: string;
+
+  @ApiProperty()
+  @IsISO8601()
+  public to: string;
 }

@@ -1,4 +1,10 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { UserEntity } from '../../users/user.entity';
 import { RecipeEntity } from '../../recipes/entities/recipe.entity';
 
@@ -7,13 +13,14 @@ export class ScheduledMealEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
-  timestamp: Date;
+  @Column({ type: 'timestamp' })
+  datetime: string;
 
-  @Column()
+  @Column({ nullable: true })
   done?: boolean;
 
   @ManyToOne(() => RecipeEntity, (recipe) => recipe.schedules)
+  @JoinColumn()
   recipe: RecipeEntity;
 
   @ManyToOne(() => UserEntity, (user) => user.scheduledMeals)

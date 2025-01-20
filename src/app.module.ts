@@ -27,6 +27,7 @@ import { ScheduledMealsModule } from './scheduled_meals/scheduled_meals.module';
         url: configService.get('DATABASE_URL'),
         autoLoadEntities: true,
         synchronize: true,
+        timezone: 'UTC',
         ...(process.env.MODE === 'development'
           ? {}
           : {

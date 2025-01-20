@@ -8,6 +8,7 @@ import {
   Delete,
   NotImplementedException,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { ScheduledMealsService } from './scheduled_meals.service';
 import {
@@ -17,6 +18,7 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
@@ -27,6 +29,7 @@ import { UpdateScheduledMealRequestDto } from './dto/updateScheduledMealRequest.
 import { ScheduledMealResponsePaginatedDto } from './dto/scheduledMealResponsePaginated.dto';
 import { CreateScheduledMealsRequestDto } from './dto/createScheduledMealsRequest.dto';
 import { CreateScheduledMealsResponseDto } from './dto/createScheduledMealsResponse.dto';
+import { ScheduledMealRequestDto } from './dto/scheduledMealRequestQuery.dto';
 
 @ApiTags('scheduled-meals')
 @ApiSecurity('access-token')
@@ -50,22 +53,31 @@ export class ScheduledMealsController {
   })
   @TransformResponse(CreateScheduledMealsResponseDto)
   @Post()
-  createScheduledMeal(
-    @Body() _createScheduledMealDto: CreateScheduledMealsRequestDto,
+  async createScheduledMeal(
+    @Body() createScheduledMealDto: CreateScheduledMealsRequestDto,
   ): Promise<CreateScheduledMealsResponseDto> {
-    throw new NotImplementedException();
+    return await this.scheduledMealsService.create(
+      createScheduledMealDto.meals,
+    );
   }
 
   @ApiOperation({
     operationId: 'getScheduledMeals',
+  })
+  @ApiQuery({
+    type: ScheduledMealRequestDto,
   })
   @ApiOkResponse({
     type: ScheduledMealResponsePaginatedDto,
   })
   @TransformResponse(ScheduledMealResponsePaginatedDto)
   @Get()
-  getScheduledMeals(): Promise<ScheduledMealResponsePaginatedDto> {
-    throw new NotImplementedException();
+  async getScheduledMeals(
+    @Query() filter: ScheduledMealRequestDto,
+  ): Promise<ScheduledMealResponsePaginatedDto> {
+    return (await this.scheduledMealsService.getScheduledMeals(
+      filter,
+    )) as ScheduledMealResponsePaginatedDto;
   }
 
   @ApiOperation({
@@ -109,7 +121,7 @@ export class ScheduledMealsController {
   @ApiNotFoundResponse()
   @TransformResponse(ScheduledMealResponseDto)
   @Delete(':id')
-  deleteScheduledMeal(@Param('id') _id: string) {
-    throw new NotImplementedException();
+  async deleteScheduledMeal(@Param('id') id: string) {
+    await this.scheduledMealsService.remove(id);
   }
 }

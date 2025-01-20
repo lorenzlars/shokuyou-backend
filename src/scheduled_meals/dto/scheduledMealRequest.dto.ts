@@ -1,4 +1,4 @@
-import { IsDateString, IsString } from 'class-validator';
+import { IsISO8601, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class ScheduledMealRequestDto {
@@ -7,6 +7,6 @@ export class ScheduledMealRequestDto {
   public recipeId: string;
 
   @ApiProperty()
-  @IsDateString()
+  @IsISO8601()
   public datetime: string;
 }
