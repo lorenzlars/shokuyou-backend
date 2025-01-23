@@ -51,7 +51,7 @@ export async function paginatedFind<T>(
       .skip((filter.options.page - 1) * filter.options.pageSize);
   }
 
-  if (filter.callback) {
+  if (typeof filter.callback === 'function') {
     filter.callback(query);
   }
 

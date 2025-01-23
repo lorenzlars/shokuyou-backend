@@ -1,7 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Recipe } from './recipe.schema';
 import { UserRequest } from '../common/types';
 import {
@@ -35,7 +35,7 @@ export class RecipesService {
       options: filter,
       find: {
         name: { $regex: filter.filter ?? '', $options: 'i' },
-        owner: { id: this.request.user.id },
+        owner: new Types.ObjectId(this.request.user.id),
       },
     });
   }
@@ -43,33 +43,34 @@ export class RecipesService {
   async getRecipe(id: string) {
     const recipeDocument = await this.recipeModel
       .findOne({
-        id,
-        owner: { id: this.request.user.id },
+        _id: id,
+        owner: new Types.ObjectId(this.request.user.id),
       })
-      .lean()
       .exec();
 
     if (!recipeDocument) {
       throw new NotFoundException();
     }
 
-    return recipeDocument;
+    return recipeDocument.toObject();
   }
 
   async createRecipe(recipe: RecipeType) {
     const recipeDocument = new this.recipeModel({
       ...recipe,
-      owner: { id: this.request.user.id },
+      owner: new Types.ObjectId(this.request.user.id),
     });
 
-    return await recipeDocument.save();
+    const createdRecipeDocument = await recipeDocument.save();
+
+    return createdRecipeDocument.toObject();
   }
 
-  async updateRecipe(id: string, { ingredients, ...recipe }: RecipeType) {
+  async updateRecipe(id: string, recipe: RecipeType) {
     const recipeDocument = await this.recipeModel
       .findOne({
-        id,
-        owner: { id: this.request.user.id },
+        _id: id,
+        owner: new Types.ObjectId(this.request.user.id),
       })
       .exec();
 
@@ -79,14 +80,16 @@ export class RecipesService {
 
     Object.assign(recipeDocument, recipe);
 
-    return await recipeDocument.save();
+    const updatedRecipeDocument = await recipeDocument.save();
+
+    return updatedRecipeDocument.toObject();
   }
 
   async removeRecipe(id: string) {
     const recipeDocument = await this.recipeModel
       .findOne({
-        id,
-        owner: { id: this.request.user.id },
+        _id: id,
+        owner: new Types.ObjectId(this.request.user.id),
       })
       .exec();
 

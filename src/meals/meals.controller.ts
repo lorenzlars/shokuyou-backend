@@ -39,7 +39,7 @@ export class ScheduledMealsController {
   constructor(private readonly scheduledMealsService: ScheduledMealsService) {}
 
   @ApiOperation({
-    operationId: 'createScheduledMeal',
+    operationId: 'createMeal',
   })
   @ApiBody({
     type: ScheduledMealRequestDto,
@@ -49,21 +49,21 @@ export class ScheduledMealsController {
   })
   @TransformResponse(ScheduledMealResponseDto)
   @Post()
-  async createScheduledMeal(
+  async createMeal(
     @Body() createScheduledMealDto: ScheduledMealRequestDto,
   ): Promise<ScheduledMealResponseDto> {
     return await this.scheduledMealsService.createMeal(createScheduledMealDto);
   }
 
   @ApiOperation({
-    operationId: 'getScheduledMeals',
+    operationId: 'getMeals',
   })
   @ApiOkResponse({
     type: ScheduledMealResponsePaginatedDto,
   })
   @TransformResponse(ScheduledMealResponsePaginatedDto)
   @Get()
-  async getScheduledMeals(
+  async getMeals(
     @Query() filter: ScheduledMealRequestQueryDto,
   ): Promise<ScheduledMealResponsePaginatedDto> {
     return (await this.scheduledMealsService.getMeals(
@@ -72,7 +72,7 @@ export class ScheduledMealsController {
   }
 
   @ApiOperation({
-    operationId: 'getScheduledMeal',
+    operationId: 'getMeal',
   })
   @ApiOkResponse({
     type: ScheduledMealResponseDto,
@@ -80,14 +80,12 @@ export class ScheduledMealsController {
   @ApiNotFoundResponse()
   @TransformResponse(ScheduledMealResponseDto)
   @Get(':id')
-  async getScheduledMeal(
-    @Param('id') id: string,
-  ): Promise<ScheduledMealResponseDto> {
+  async getMeal(@Param('id') id: string): Promise<ScheduledMealResponseDto> {
     return await this.scheduledMealsService.getMeal(id);
   }
 
   @ApiOperation({
-    operationId: 'updateScheduledMeal',
+    operationId: 'updateMeal',
   })
   @ApiBody({
     type: ScheduledMealRequestDto,
@@ -98,7 +96,7 @@ export class ScheduledMealsController {
   @ApiNotFoundResponse()
   @TransformResponse(ScheduledMealResponseDto)
   @Put(':id')
-  async updateScheduledMeal(
+  async updateMeal(
     @Param('id') id: string,
     @Body() updateScheduledMealDto: ScheduledMealRequestDto,
   ): Promise<ScheduledMealResponseDto> {
@@ -109,13 +107,13 @@ export class ScheduledMealsController {
   }
 
   @ApiOperation({
-    operationId: 'deleteScheduledMeal',
+    operationId: 'deleteMeal',
   })
   @ApiOkResponse()
   @ApiNotFoundResponse()
   @TransformResponse(ScheduledMealResponseDto)
   @Delete(':id')
-  async deleteScheduledMeal(@Param('id') id: string) {
+  async deleteMeal(@Param('id') id: string) {
     await this.scheduledMealsService.removeMeal(id);
   }
 }

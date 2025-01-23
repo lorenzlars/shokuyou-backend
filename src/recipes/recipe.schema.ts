@@ -50,7 +50,7 @@ export class Recipe {
   ingredients: RecipeIngredient[];
 
   @Prop({ type: Types.ObjectId, ref: () => User })
-  owner: User;
+  owner: Types.ObjectId | User;
 }
 
 export const RecipeSchema = SchemaFactory.createForClass(Recipe);

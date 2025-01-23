@@ -7,7 +7,6 @@ import {
   Post,
   UseGuards,
   Query,
-  ParseUUIDPipe,
   Put,
 } from '@nestjs/common';
 import { RecipesService } from './recipes.service';
@@ -53,7 +52,7 @@ export class RecipesController {
   })
   @TransformResponse(RecipeResponseDto)
   @Post()
-  async addRecipe(@Body() recipeRequestDto: RecipeRequestDto) {
+  async createRecipe(@Body() recipeRequestDto: RecipeRequestDto) {
     return await this.recipesService.createRecipe(recipeRequestDto);
   }
 
@@ -70,9 +69,7 @@ export class RecipesController {
   })
   @TransformResponse(RecipeResponseDto)
   @Get(':id')
-  async getRecipe(
-    @Param('id', new ParseUUIDPipe()) id: string,
-  ): Promise<RecipeResponseDto> {
+  async getRecipe(@Param('id') id: string): Promise<RecipeResponseDto> {
     return await this.recipesService.getRecipe(id);
   }
 
@@ -130,7 +127,7 @@ export class RecipesController {
     description: 'Recipe not found',
   })
   @Delete(':id')
-  async deleteRecipe(@Param('id', new ParseUUIDPipe()) id: string) {
+  async deleteRecipe(@Param('id') id: string) {
     await this.recipesService.removeRecipe(id);
   }
 }
