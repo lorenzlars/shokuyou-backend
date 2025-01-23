@@ -29,12 +29,12 @@ import { CreatePlanDto } from './dto/createPlan.dto';
 import { PlanResponsePaginatedSimpleDto } from './dto/planResponsePaginatedSimple.dto';
 import { PaginationRequestFilterQueryDto } from '../common/pagination/dto/paginationRequestFilterQuery.dto';
 
-@ApiTags('plans')
+@ApiTags('templates')
 @ApiSecurity('access-token')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller({
-  path: 'plans',
+  path: 'templates',
   version: '1',
 })
 export class TemplatesController {

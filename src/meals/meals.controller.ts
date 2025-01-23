@@ -28,12 +28,12 @@ import { ScheduledMealResponsePaginatedDto } from './dto/scheduledMealResponsePa
 import { ScheduledMealRequestQueryDto } from './dto/scheduledMealRequestQuery.dto';
 import { ScheduledMealRequestDto } from './dto/scheduledMealRequest.dto';
 
-@ApiTags('scheduled-meals')
+@ApiTags('meals')
 @ApiSecurity('access-token')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller({
-  path: 'scheduled-meals',
+  path: 'meals',
   version: '1',
 })
 export class ScheduledMealsController {
