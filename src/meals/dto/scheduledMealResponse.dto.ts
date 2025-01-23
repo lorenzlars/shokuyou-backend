@@ -7,7 +7,7 @@ import {
   IsString,
 } from 'class-validator';
 import { Expose } from 'class-transformer';
-import { RecipeResponseFlatDto } from '../../recipes/dto/recipeResponseFlat.dto';
+import { RecipeResponseDto } from '../../recipes/dto/recipeResponse.dto';
 
 export class ScheduledMealResponseDto {
   @ApiProperty()
@@ -27,9 +27,9 @@ export class ScheduledMealResponseDto {
   public done?: boolean;
 
   @ApiProperty({
-    type: RecipeResponseFlatDto,
+    type: RecipeResponseDto,
   })
   @IsObject()
   @Expose()
-  public recipe: RecipeResponseFlatDto;
+  public recipe: RecipeResponseDto;
 }

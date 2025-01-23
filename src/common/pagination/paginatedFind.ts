@@ -1,9 +1,8 @@
-import { FindOptionsRelations, FindOptionsWhere } from 'typeorm';
-import { Repository } from 'typeorm/repository/Repository';
+import { Model, Query, RootFilterQuery } from 'mongoose';
 
 export enum PaginationSortOrder {
-  ASC = 'ASC',
-  DESC = 'DESC',
+  ASC = 1,
+  DESC = -1,
 }
 
 export type PaginationOptions = {
@@ -14,15 +13,15 @@ export type PaginationOptions = {
   filter?: string;
 };
 
-export type PaginationFilter<T> = {
-  options: PaginationOptions;
-  where?: FindOptionsWhere<T> | FindOptionsWhere<T>[];
-  relations?: FindOptionsRelations<T> | string[];
-};
-
 export type PaginationReturn<T> = Omit<PaginationOptions, 'filter'> & {
   total: number;
   content: T[];
+};
+
+export type PaginationFilter<T> = {
+  options?: PaginationOptions;
+  find?: RootFilterQuery<T>;
+  callback?: (model: Query<unknown, T>) => void;
 };
 
 export function createOrderQuery(filter: PaginationOptions) {
@@ -40,20 +39,28 @@ export function createOrderQuery(filter: PaginationOptions) {
 }
 
 export async function paginatedFind<T>(
-  repository: Repository<T>,
+  model: Model<T>,
   filter: PaginationFilter<T>,
 ): Promise<PaginationReturn<T>> {
-  const [content, total] = await repository.findAndCount({
-    order: createOrderQuery(filter.options),
-    skip: (filter.options.page - 1) * filter.options.pageSize,
-    take: filter.options.pageSize,
-    where: filter.where,
-    relations: filter.relations,
-  });
+  const query = model.find(filter.find);
+
+  if (filter.options) {
+    query
+      .sort(createOrderQuery(filter.options))
+      .limit(filter.options.pageSize)
+      .skip((filter.options.page - 1) * filter.options.pageSize);
+  }
+
+  if (filter.callback) {
+    filter.callback(query);
+  }
+
+  const content = await query.exec();
+  const total = await model.countDocuments().exec();
 
   return {
     ...filter.options,
-    content,
+    content: content.map((item) => item.toObject()),
     total,
   };
 }

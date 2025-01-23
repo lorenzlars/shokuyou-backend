@@ -7,8 +7,9 @@ import {
   Delete,
   UseGuards,
   Put,
+  Query,
 } from '@nestjs/common';
-import { PlansService } from './plans.service';
+import { TemplatesService } from './templates.service';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -16,6 +17,7 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
@@ -25,6 +27,7 @@ import { TransformResponse } from '../common/interceptors/responseTransformInter
 import { PlanResponseDto } from './dto/planResponse.dto';
 import { CreatePlanDto } from './dto/createPlan.dto';
 import { PlanResponsePaginatedSimpleDto } from './dto/planResponsePaginatedSimple.dto';
+import { PaginationRequestFilterQueryDto } from '../common/pagination/dto/paginationRequestFilterQuery.dto';
 
 @ApiTags('plans')
 @ApiSecurity('access-token')
@@ -34,8 +37,8 @@ import { PlanResponsePaginatedSimpleDto } from './dto/planResponsePaginatedSimpl
   path: 'plans',
   version: '1',
 })
-export class PlansController {
-  constructor(private readonly plansService: PlansService) {}
+export class TemplatesController {
+  constructor(private readonly plansService: TemplatesService) {}
 
   @ApiOperation({
     operationId: 'createPlan',
@@ -48,12 +51,12 @@ export class PlansController {
   })
   @TransformResponse(PlanResponseDto)
   @Post()
-  async createPlan(@Body() createPlanDto: CreatePlanDto) {
-    return await this.plansService.create(createPlanDto);
+  async createTemplate(@Body() createPlanDto: CreatePlanDto) {
+    return await this.plansService.createTemplate(createPlanDto);
   }
 
   @ApiOperation({
-    operationId: 'getPlan',
+    operationId: 'getTemplate',
   })
   @ApiOkResponse({
     type: PlanResponseDto,
@@ -61,24 +64,29 @@ export class PlansController {
   @ApiNotFoundResponse()
   @TransformResponse(PlanResponseDto)
   @Get(':id')
-  async getPlan(@Param('id') id: string) {
-    return await this.plansService.findOne(id);
+  async getTemplate(@Param('id') id: string) {
+    return await this.plansService.getTemplate(id);
   }
 
   @ApiOperation({
-    operationId: 'getPlans',
+    operationId: 'getTemplates',
+  })
+  @ApiQuery({
+    type: PaginationRequestFilterQueryDto,
   })
   @ApiOkResponse({
     type: PlanResponsePaginatedSimpleDto,
   })
   @TransformResponse(PlanResponsePaginatedSimpleDto)
   @Get()
-  async getPlans(): Promise<PlanResponsePaginatedSimpleDto> {
-    return await this.plansService.findAll();
+  async getTemplates(
+    @Query() filter: PaginationRequestFilterQueryDto,
+  ): Promise<PlanResponsePaginatedSimpleDto> {
+    return await this.plansService.getTemplates(filter);
   }
 
   @ApiOperation({
-    operationId: 'updatePlan',
+    operationId: 'updateTemplate',
   })
   @ApiOkResponse({
     type: PlanResponseDto,
@@ -89,20 +97,20 @@ export class PlansController {
   })
   @TransformResponse(PlanResponseDto)
   @Put(':id')
-  async updatePlan(
+  async updateTemplate(
     @Param('id') id: string,
     @Body() updatePlanDto: PlanRequestDto,
   ) {
-    return await this.plansService.update(id, updatePlanDto);
+    return await this.plansService.updateTemplate(id, updatePlanDto);
   }
 
   @ApiOperation({
-    operationId: 'removePlan',
+    operationId: 'removeTemplate',
   })
   @ApiOkResponse()
   @ApiNotFoundResponse()
   @Delete(':id')
-  async removePlan(@Param('id') id: string) {
-    return await this.plansService.remove(id);
+  async removeTemplate(@Param('id') id: string) {
+    return await this.plansService.removeTemplate(id);
   }
 }

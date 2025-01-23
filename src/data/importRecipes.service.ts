@@ -1,6 +1,10 @@
 import { Injectable, Logger, NotImplementedException } from '@nestjs/common';
 import AdmZip from 'adm-zip';
-import { Ingredient, Recipe, RecipesService } from '../recipes/recipes.service';
+import {
+  RecipeIngredientType,
+  RecipeType,
+  RecipesService,
+} from '../recipes/recipes.service';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 import { RecipeRequestDto } from '../recipes/dto/recipeRequest.dto';
@@ -47,11 +51,7 @@ export class ImportRecipesService {
           );
         }
 
-        const importedRecipe = await this.recipesService.createRecipe(dto);
-
-        if (images.length > 0) {
-          await this.recipesService.addImage(importedRecipe.id, images[0]);
-        }
+        await this.recipesService.createRecipe(dto);
       } catch (error) {
         this.logger.error(
           `Faild to import recipe ${file.entryName.slice(0, -11)}`,
@@ -63,7 +63,7 @@ export class ImportRecipesService {
 
   private parseMelaRecipe(
     recipe: MelaRecipe,
-  ): Recipe & { images: Express.Multer.File[] } {
+  ): RecipeType & { images: Express.Multer.File[] } {
     console.log(recipe.images);
 
     return {
@@ -77,14 +77,14 @@ export class ImportRecipesService {
     };
   }
 
-  private parseMelaIngredients(ingredients: string): Ingredient[] {
+  private parseMelaIngredients(ingredients: string): RecipeIngredientType[] {
     if (!ingredients) {
       return [];
     }
 
     return ingredients
       .split('\n')
-      .map<Ingredient>((ingredient) => {
+      .map<RecipeIngredientType>((ingredient) => {
         const [, amountString, unit, name] =
           ingredient.match(/^(\S+)\s(\S+)\s(.+)$/) ?? [];
 

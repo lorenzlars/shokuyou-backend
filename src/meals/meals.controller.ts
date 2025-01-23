@@ -9,7 +9,7 @@ import {
   Query,
   Put,
 } from '@nestjs/common';
-import { ScheduledMealsService } from './scheduled_meals.service';
+import { ScheduledMealsService } from './meals.service';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -25,8 +25,6 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TransformResponse } from '../common/interceptors/responseTransformInterceptor';
 import { ScheduledMealResponseDto } from './dto/scheduledMealResponse.dto';
 import { ScheduledMealResponsePaginatedDto } from './dto/scheduledMealResponsePaginated.dto';
-import { CreateScheduledMealsRequestDto } from './dto/createScheduledMealsRequest.dto';
-import { CreateScheduledMealsResponseDto } from './dto/createScheduledMealsResponse.dto';
 import { ScheduledMealRequestQueryDto } from './dto/scheduledMealRequestQuery.dto';
 import { ScheduledMealRequestDto } from './dto/scheduledMealRequest.dto';
 
@@ -45,19 +43,17 @@ export class ScheduledMealsController {
     operationId: 'createScheduledMeal',
   })
   @ApiBody({
-    type: CreateScheduledMealsRequestDto,
+    type: ScheduledMealRequestDto,
   })
   @ApiCreatedResponse({
-    type: CreateScheduledMealsResponseDto,
+    type: ScheduledMealResponseDto,
   })
-  @TransformResponse(CreateScheduledMealsResponseDto)
+  @TransformResponse(ScheduledMealResponseDto)
   @Post()
   async createScheduledMeal(
-    @Body() createScheduledMealDto: CreateScheduledMealsRequestDto,
-  ): Promise<CreateScheduledMealsResponseDto> {
-    return await this.scheduledMealsService.create(
-      createScheduledMealDto.meals,
-    );
+    @Body() createScheduledMealDto: ScheduledMealRequestDto,
+  ): Promise<ScheduledMealResponseDto> {
+    return await this.scheduledMealsService.createMeal(createScheduledMealDto);
   }
 
   @ApiOperation({
@@ -74,7 +70,7 @@ export class ScheduledMealsController {
   async getScheduledMeals(
     @Query() filter: ScheduledMealRequestQueryDto,
   ): Promise<ScheduledMealResponsePaginatedDto> {
-    return (await this.scheduledMealsService.getScheduledMeals(
+    return (await this.scheduledMealsService.getMeals(
       filter,
     )) as ScheduledMealResponsePaginatedDto;
   }
@@ -91,7 +87,7 @@ export class ScheduledMealsController {
   async getScheduledMeal(
     @Param('id') id: string,
   ): Promise<ScheduledMealResponseDto> {
-    return await this.scheduledMealsService.findOne(id);
+    return await this.scheduledMealsService.getMeal(id);
   }
 
   @ApiOperation({
@@ -110,7 +106,10 @@ export class ScheduledMealsController {
     @Param('id') id: string,
     @Body() updateScheduledMealDto: ScheduledMealRequestDto,
   ): Promise<ScheduledMealResponseDto> {
-    return await this.scheduledMealsService.update(id, updateScheduledMealDto);
+    return await this.scheduledMealsService.updateMeal(
+      id,
+      updateScheduledMealDto,
+    );
   }
 
   @ApiOperation({
@@ -121,6 +120,6 @@ export class ScheduledMealsController {
   @TransformResponse(ScheduledMealResponseDto)
   @Delete(':id')
   async deleteScheduledMeal(@Param('id') id: string) {
-    await this.scheduledMealsService.remove(id);
+    await this.scheduledMealsService.removeMeal(id);
   }
 }

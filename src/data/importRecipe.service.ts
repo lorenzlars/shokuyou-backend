@@ -1,7 +1,7 @@
 import * as cheerio from 'cheerio';
 import { Injectable, Logger } from '@nestjs/common';
 import { FetchError } from './FetchError';
-import { Recipe } from '../recipes/recipes.service';
+import { RecipeType } from '../recipes/recipes.service';
 
 export interface Root {
   '@context': string;
@@ -85,7 +85,7 @@ export interface Image {
 export class ImportRecipeService {
   private readonly logger = new Logger(ImportRecipeService.name);
 
-  async scrapRecipe(url: string): Promise<Recipe & { imageUrl: string }> {
+  async scrapRecipe(url: string): Promise<RecipeType & { imageUrl: string }> {
     const websiteData = await this.extractRecipe(url);
 
     return {

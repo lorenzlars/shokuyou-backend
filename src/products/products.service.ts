@@ -1,17 +1,17 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ProductRequestDto } from './dto/productRequest.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, Repository } from 'typeorm';
 import { REQUEST } from '@nestjs/core';
-import { ProductEntity } from './entities/product.entity';
+import { RecipesService } from '../recipes/recipes.service';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { MessageType, Product } from './product.schema';
+import { UserRequest } from '../common/types';
 import {
   paginatedFind,
   PaginationOptions,
 } from '../common/pagination/paginatedFind';
-import { MessageType, ProductLogEntity } from './entities/productLog.entity';
-import { RecipesService } from '../recipes/recipes.service';
 
-type Product = {
+type ProductType = {
   name: string;
   unit: string;
   amount: number;
@@ -22,110 +22,38 @@ export class ProductsService {
   constructor(
     private readonly recipesService: RecipesService,
 
-    @InjectRepository(ProductEntity)
-    private readonly productRepository: Repository<ProductEntity>,
+    @InjectModel(Product.name) private productModel: Model<Product>,
 
-    @InjectRepository(ProductLogEntity)
-    private readonly productLogRepository: Repository<ProductLogEntity>,
-
-    // TODO: How to add the user into the type correctly
-    @Inject(REQUEST) private readonly request: Request & { user: any },
+    @Inject(REQUEST) private readonly request: UserRequest,
   ) {}
 
-  async createProduct(product: Product) {
-    return await this.productRepository.save({
+  async createProduct(product: ProductType) {
+    const productDocument = new this.productModel({
       ...product,
       log: [{ messageType: MessageType.UPDATED_BY_PRODUCT }],
       owner: { id: this.request.user.id },
     });
+
+    await productDocument.save();
   }
 
-  async createProductByRecipes(recipeIds: string[]) {
-    const recipes = await this.recipesService.getRecipes(recipeIds);
-
-    // TODO: Code below is just AI crap, refactoring needed.
-
-    const ingredientsByRecipes = recipes.reduce(
-      (acc, recipe) => acc.concat(recipe.ingredients),
-      [],
-    );
-
-    const groupedIngredients = ingredientsByRecipes.reduce(
-      (acc, ingredient) => {
-        const existingIngredient = acc.find(
-          (item) =>
-            item.name === ingredient.name && item.unit === ingredient.unit,
-        );
-
-        if (existingIngredient) {
-          existingIngredient.amount += ingredient.amount;
-        } else {
-          acc.push({ ...ingredient });
-        }
-
-        return acc;
+  async getProducts(filter: PaginationOptions) {
+    return await paginatedFind(this.productModel, {
+      options: filter,
+      find: {
+        name: { $regex: filter.filter ?? '', $options: 'i' },
       },
-      [],
-    );
-
-    for (const ingredient of groupedIngredients) {
-      const existingProduct = await this.productRepository.findOne({
-        where: {
-          name: ingredient.name,
-          unit: ingredient.unit,
-          owner: { id: this.request.user.id },
-        },
-      });
-
-      if (existingProduct) {
-        await this.productRepository.save({
-          ...existingProduct,
-          amount: existingProduct.amount + ingredient.amount,
-          log: [
-            ...(existingProduct.log || []),
-            { messageType: MessageType.UPDATED_BY_RECIPE },
-          ],
-        });
-      } else {
-        await this.productRepository.save({
-          ...ingredient,
-          log: [{ messageType: MessageType.CREATED_BY_RECIPE }],
-          owner: { id: this.request.user.id },
-        });
-      }
-    }
-
-    return { products: [] };
-  }
-
-  async getProductsPage(filter: PaginationOptions) {
-    const { content, ...pagination } = await paginatedFind(
-      this.productRepository,
-      {
-        options: filter,
-        where: {
-          name: filter.filter ? ILike(`%${filter.filter}%`) : undefined,
-          owner: { id: this.request.user.id },
-        },
-      },
-    );
-
-    return {
-      ...pagination,
-      content: content.map((product) => ({
-        ...product,
-        log: product.log.map((log) => ({ ...log })),
-      })),
-    };
+    });
   }
 
   async getProduct(id: string) {
-    const product = await this.productRepository.findOne({
-      where: {
+    const product = await this.productModel
+      .findOne({
         id,
         owner: { id: this.request.user.id },
-      },
-    });
+      })
+      .lean()
+      .exec();
 
     if (!product) {
       throw new NotFoundException();
@@ -135,40 +63,41 @@ export class ProductsService {
   }
 
   async updateProduct(id: string, updateProductDto: ProductRequestDto) {
-    const product = await this.productRepository.findOne({
-      where: {
+    const productDocument = await this.productModel
+      .findOne({
         id,
         owner: { id: this.request.user.id },
-      },
-    });
+      })
+      .lean()
+      .exec();
 
-    if (!product) {
+    if (!productDocument) {
       throw new NotFoundException();
     }
 
-    return await this.productRepository.save({
+    const updatedProductDocument = new this.productModel({
       ...updateProductDto,
       log: [
-        ...(product.log || []),
+        ...(productDocument.log || []),
         { messageType: MessageType.UPDATED_BY_PRODUCT },
       ],
       id,
       owner: { id: this.request.user.id },
     });
+
+    return await updatedProductDocument.save();
   }
 
   async removeProduct(id: string) {
-    const product = await this.productRepository.findOne({
-      where: {
-        id,
-        owner: { id: this.request.user.id },
-      },
+    const productDocument = await this.productModel.findOne({
+      id,
+      owner: { id: this.request.user.id },
     });
 
-    if (!product) {
+    if (!productDocument) {
       throw new NotFoundException();
     }
 
-    await this.productRepository.delete(product);
+    await this.productModel.deleteOne({ id });
   }
 }

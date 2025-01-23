@@ -9,7 +9,7 @@ import {
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
-import { MessageType } from '../entities/productLog.entity';
+import { MessageType } from '../product.schema';
 
 export class LogEntryDto {
   @ApiProperty({
@@ -27,7 +27,7 @@ export class LogEntryDto {
   @IsOptional()
   @IsObject()
   @Expose()
-  messageProperties?: Record<string, string>;
+  messageProperties?: Record<string, string | number>;
 }
 
 export class ProductResponseDto {

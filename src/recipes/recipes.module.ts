@@ -1,25 +1,16 @@
 import { Module } from '@nestjs/common';
 import { RecipesController } from './recipes.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { RecipesService } from './recipes.service';
-import { ConfigModule } from '@nestjs/config';
-import { ImagesModule } from '../images/images.module';
-import { IngredientsModule } from '../ingredients/ingredients.module';
-import { RecipeEntity } from './entities/recipe.entity';
-import { RecipeIngredientEntity } from './entities/recipeIngredient.entity';
-import { UsersModule } from '../users/users.module';
 import { ImportRecipesService } from '../data/importRecipes.service';
+import { MongooseModule } from '@nestjs/mongoose';
+import { Recipe, RecipeSchema } from './recipe.schema';
 
 @Module({
   imports: [
-    UsersModule,
-    ConfigModule,
-    ImagesModule,
-    IngredientsModule,
-    TypeOrmModule.forFeature([RecipeEntity, RecipeIngredientEntity]),
+    MongooseModule.forFeature([{ name: Recipe.name, schema: RecipeSchema }]),
   ],
   providers: [RecipesService, ImportRecipesService],
   controllers: [RecipesController],
-  exports: [TypeOrmModule, RecipesService],
+  exports: [MongooseModule, RecipesService],
 })
 export class RecipesModule {}

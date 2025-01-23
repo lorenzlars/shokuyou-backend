@@ -1,7 +1,6 @@
 import {
   Controller,
   Get,
-  Post,
   Body,
   Param,
   Delete,
@@ -14,30 +13,18 @@ import { ProductsService } from './products.service';
 import { ProductRequestDto } from './dto/productRequest.dto';
 import {
   ApiBearerAuth,
-  ApiBody,
-  ApiCreatedResponse,
-  ApiExtraModels,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiSecurity,
   ApiTags,
-  getSchemaPath,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ProductResponseDto } from './dto/productResponse.dto';
 import { TransformResponse } from '../common/interceptors/responseTransformInterceptor';
 import { ProductPaginatedResponseDto } from './dto/productPaginatedResponse.dto';
 import { PaginationRequestFilterQueryDto } from '../common/pagination/dto/paginationRequestFilterQuery.dto';
-import {
-  AddRecipesRequestDto,
-  AddProductRequestDto,
-  AddProductRequestType,
-  AddProductBaseDto,
-} from './dto/addProductsRequests.dto';
-import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import { AddProductsResponseDto } from './dto/addProductsResponse.dto';
 
 @ApiTags('products')
 @ApiSecurity('access-token')
@@ -50,57 +37,57 @@ import { AddProductsResponseDto } from './dto/addProductsResponse.dto';
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
-  @ApiOperation({
-    summary: 'Add a new product',
-    operationId: 'createProduct',
-  })
-  @ApiCreatedResponse({
-    description: 'Product successfully created',
-    type: AddProductsResponseDto,
-  })
-  @ApiExtraModels(AddProductRequestDto, AddRecipesRequestDto)
-  @ApiBody({
-    schema: {
-      oneOf: [
-        { $ref: getSchemaPath(AddProductRequestDto) },
-        { $ref: getSchemaPath(AddRecipesRequestDto) },
-      ],
-    },
-  })
-  @TransformResponse(AddProductsResponseDto)
-  @Post()
-  async createProduct(
-    @Body() addProductDto: AddProductRequestDto | AddRecipesRequestDto,
-  ): Promise<AddProductsResponseDto> {
-    const addProductRequestDto = plainToInstance(
-      AddProductBaseDto,
-      addProductDto,
-    );
-    await this.manualDtoValidation(addProductRequestDto);
-
-    switch (addProductDto.type) {
-      case AddProductRequestType.product:
-        const addProductRequestDto = plainToInstance(
-          AddProductRequestDto,
-          addProductDto,
-        );
-        await this.manualDtoValidation(addProductRequestDto);
-        const product =
-          await this.productsService.createProduct(addProductRequestDto);
-
-        return { products: [product] };
-      case AddProductRequestType.recipes:
-        const addRecipesRequestDto = plainToInstance(
-          AddRecipesRequestDto,
-          addProductDto,
-        );
-        await this.manualDtoValidation(addRecipesRequestDto);
-
-        return await this.productsService.createProductByRecipes(
-          addRecipesRequestDto.recipeIds,
-        );
-    }
-  }
+  // @ApiOperation({
+  //   summary: 'Add a new product',
+  //   operationId: 'createProduct',
+  // })
+  // @ApiCreatedResponse({
+  //   description: 'Product successfully created',
+  //   type: AddProductsResponseDto,
+  // })
+  // @ApiExtraModels(AddProductRequestDto, AddRecipesRequestDto)
+  // @ApiBody({
+  //   schema: {
+  //     oneOf: [
+  //       { $ref: getSchemaPath(AddProductRequestDto) },
+  //       { $ref: getSchemaPath(AddRecipesRequestDto) },
+  //     ],
+  //   },
+  // })
+  // @TransformResponse(AddProductsResponseDto)
+  // @Post()
+  // async createProduct(
+  //   @Body() addProductDto: AddProductRequestDto | AddRecipesRequestDto,
+  // ): Promise<AddProductsResponseDto> {
+  //   const addProductRequestDto = plainToInstance(
+  //     AddProductBaseDto,
+  //     addProductDto,
+  //   );
+  //   await this.manualDtoValidation(addProductRequestDto);
+  //
+  //   switch (addProductDto.type) {
+  //     case AddProductRequestType.product:
+  //       const addProductRequestDto = plainToInstance(
+  //         AddProductRequestDto,
+  //         addProductDto,
+  //       );
+  //       await this.manualDtoValidation(addProductRequestDto);
+  //       const product =
+  //         await this.productsService.createProduct(addProductRequestDto);
+  //
+  //       return { products: [product] };
+  //     case AddProductRequestType.recipes:
+  //       const addRecipesRequestDto = plainToInstance(
+  //         AddRecipesRequestDto,
+  //         addProductDto,
+  //       );
+  //       await this.manualDtoValidation(addRecipesRequestDto);
+  //
+  //       return await this.productsService.createProductByRecipes(
+  //         addRecipesRequestDto.recipeIds,
+  //       );
+  //   }
+  // }
 
   @ApiOperation({
     operationId: 'getProducts',
@@ -113,7 +100,7 @@ export class ProductsController {
   async getProducts(
     @Query() filter: PaginationRequestFilterQueryDto,
   ): Promise<ProductPaginatedResponseDto> {
-    return await this.productsService.getProductsPage(filter);
+    return await this.productsService.getProducts(filter);
   }
 
   @ApiOperation({
