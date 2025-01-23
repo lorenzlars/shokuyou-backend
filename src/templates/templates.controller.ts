@@ -17,7 +17,6 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiQuery,
   ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
@@ -70,9 +69,6 @@ export class TemplatesController {
 
   @ApiOperation({
     operationId: 'getTemplates',
-  })
-  @ApiQuery({
-    type: PaginationRequestFilterQueryDto,
   })
   @ApiOkResponse({
     type: PlanResponsePaginatedSimpleDto,

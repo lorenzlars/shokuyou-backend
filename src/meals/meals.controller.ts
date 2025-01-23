@@ -17,7 +17,6 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiQuery,
   ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
@@ -58,9 +57,6 @@ export class ScheduledMealsController {
 
   @ApiOperation({
     operationId: 'getScheduledMeals',
-  })
-  @ApiQuery({
-    type: ScheduledMealRequestQueryDto,
   })
   @ApiOkResponse({
     type: ScheduledMealResponsePaginatedDto,
