@@ -88,6 +88,6 @@ export class AuthController {
   @TransformResponse(UserResponseDto)
   @Get('profile')
   async getProfile(@User() user: RequestUser): Promise<UserResponseDto> {
-    return await this.authService.getProfile(user.id);
+    return (await this.authService.getProfile(user.id)) as any;
   }
 }
