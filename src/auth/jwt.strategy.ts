@@ -1,8 +1,8 @@
 import { Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
-import { UserEntity } from 'src/users/user.entity';
 import { UsersService } from '../users/users.service';
+import { User } from '../users/user.schema';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -28,10 +28,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  // TODO: Imrove typing and don't use the UserEntity
-  async validate(
-    payload: any,
-  ): Promise<Omit<UserEntity, 'password' | 'recipes' | 'plans'>> {
+  // TODO: Imrove typing and don't use the User schema
+  async validate(payload: any): Promise<Omit<User, 'password'>> {
     const user = await this.usersService.getById(payload.sub);
 
     if (!user) {
