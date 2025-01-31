@@ -1,21 +1,15 @@
-FROM node:22 AS builder
+FROM node:22
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
 RUN npm install -g pnpm@latest-10
 
 COPY package.json pnpm-lock.yaml ./
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 
 COPY . .
 
 RUN pnpm run build
 
-FROM node:22
-
-WORKDIR /app
-
-COPY --from=builder /app/dist ./
-
-CMD ["node", "main"]
+CMD ["node", "dist/main"]
