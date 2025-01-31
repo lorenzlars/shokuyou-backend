@@ -4,11 +4,13 @@ WORKDIR /usr/src/app
 
 RUN npm install -g pnpm@latest-10
 
-COPY package.json pnpm-lock.yaml ./
+COPY pnpm-lock.yaml ./
 
-RUN pnpm install --prod --frozen-lockfile --ignore-scripts
+RUN pnpm fetch --prod
 
 COPY . .
+
+RUN pnpm install --ignore-scripts
 
 RUN pnpm run build
 
