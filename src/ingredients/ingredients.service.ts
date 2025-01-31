@@ -1,54 +1,49 @@
-import {
-  ConflictException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, ILike, In, Repository } from 'typeorm';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
-import { IngredientEntity } from './ingredient.entity';
+import { InjectModel } from '@nestjs/mongoose';
+import { ClientSession, Model } from 'mongoose';
+import { Ingredient } from './ingredient.schema';
 import {
   paginatedFind,
   PaginationOptions,
 } from '../common/pagination/paginatedFind';
-
-export type Ingredient = {
-  name: string;
-};
+import { UserRequest } from '../common/types';
 
 @Injectable()
 export class IngredientsService {
   constructor(
-    @InjectRepository(IngredientEntity)
-    private readonly ingredientRepository: Repository<IngredientEntity>,
+    @InjectModel(Ingredient.name) private ingredientModel: Model<Ingredient>,
 
-    // TODO: How to add the user into the type correctly
-    @Inject(REQUEST) private readonly request: Request & { user: any },
+    @Inject(REQUEST) private readonly request: UserRequest,
   ) {}
 
-  async createIngredient(data: Ingredient, entityManager?: EntityManager) {
-    const repo = entityManager
-      ? entityManager.getRepository(IngredientEntity)
-      : this.ingredientRepository;
-
-    return repo.save({
+  async createIngredient(data: Ingredient, clientSession?: ClientSession) {
+    const ingredient = new this.ingredientModel({
       ...data,
       owner: { id: this.request.user.id },
     });
+
+    if (clientSession) {
+      ingredient.$session(clientSession);
+    }
+
+    await ingredient.save();
   }
 
   async createMissingIngredients(
     ingredients: Ingredient[],
-    entityManager?: EntityManager,
+    clientSession?: ClientSession,
   ) {
-    const repo = entityManager
-      ? entityManager.getRepository(IngredientEntity)
-      : this.ingredientRepository;
-
-    const existing = await repo.findBy({
-      name: In(ingredients.map((ingredient) => ingredient.name)),
+    const ingredientQuery = this.ingredientModel.find({
+      name: { $in: ingredients.map((ingredient) => ingredient.name) },
     });
+
+    if (clientSession) {
+      ingredientQuery.session(clientSession);
+    }
+
+    const existing = await ingredientQuery.exec();
+
     const existingNames = existing.map(
       (existingIngredient) => existingIngredient.name,
     );
@@ -56,111 +51,82 @@ export class IngredientsService {
       (ingredient) => !existingNames.includes(ingredient.name),
     );
 
-    const created = await repo.save(
-      toCreateIngredients.map((ingredient) => ({
-        ...ingredient,
-        owner: { id: this.request.user.id },
-      })),
+    await this.ingredientModel.bulkSave(
+      toCreateIngredients.map(
+        (ingredient) =>
+          new this.ingredientModel({
+            ...ingredient,
+            owner: { id: this.request.user.id },
+          }),
+      ),
     );
 
-    return [...existing, ...created];
+    return [...existing, ...toCreateIngredients];
   }
 
   async getIngredientPage(filter: PaginationOptions) {
-    const { content: ingredients, ...rest } = await paginatedFind(
-      this.ingredientRepository,
-      {
-        options: filter,
-        where: {
-          name: filter.filter ? ILike(`%${filter.filter}%`) : undefined, // TODO: Is filter sanitized?
-          owner: { id: this.request.user.id },
-        },
-        relations: ['recipes', 'recipes.recipe'],
+    return await paginatedFind(this.ingredientModel, {
+      options: filter,
+      find: {
+        name: { $regex: filter.filter ?? '', $options: 'i' },
       },
-    );
-
-    return {
-      ...rest,
-      content: ingredients.map((ingredient) => ({
-        ...ingredient,
-        recipes: ingredient.recipes?.map((recipeIngredient) => ({
-          id: recipeIngredient?.recipe?.id,
-          name: recipeIngredient?.recipe?.name,
-        })),
-      })), // TODO: Why is this needed by the transformer?
-    };
+      callback: (query) => query.populate('recipes'),
+    });
   }
 
   async getIngredient(id: string) {
-    const ingredient = await this.ingredientRepository.findOne({
-      where: {
-        id,
+    const ingredient = await this.ingredientModel
+      .findOne({
+        _id: id,
         owner: { id: this.request.user.id },
-      },
-      relations: ['recipes', 'recipes.recipe'],
-    });
+      })
+      .populate('recipes')
+      .exec();
 
     if (!ingredient) {
       throw new NotFoundException();
     }
 
-    return {
-      ...ingredient,
-      recipes: ingredient.recipes?.map((recipeIngredient) => ({
-        id: recipeIngredient?.recipe?.id,
-        name: recipeIngredient?.recipe?.name,
-      })),
-    };
+    return ingredient;
   }
 
   async updateIngredient(
     id: string,
     data: Partial<Ingredient>,
-    entityManager?: EntityManager,
+    clientSession?: ClientSession,
   ) {
-    const repo = entityManager
-      ? entityManager.getRepository(IngredientEntity)
-      : this.ingredientRepository;
+    const ingredientQuery = this.ingredientModel.findOne({ id });
 
-    const ingredient = await repo.findOne({
-      where: { id },
-    });
+    if (clientSession) {
+      ingredientQuery.session(clientSession);
+    }
+
+    const ingredient = await ingredientQuery.exec();
 
     if (!ingredient) {
       throw new NotFoundException();
     }
 
-    const updatedIngredient = await repo.save({ ...ingredient, ...data });
+    Object.assign(ingredient, data);
 
-    return {
-      ...updatedIngredient,
-      recipes: ingredient.recipes?.map((recipeIngredient) => ({
-        id: recipeIngredient?.recipe?.id,
-        name: recipeIngredient?.recipe?.name,
-      })),
-    };
+    return await ingredient.save();
   }
 
-  async removeIngredient(id: string, entityManager?: EntityManager) {
-    const repo = entityManager
-      ? entityManager.getRepository(IngredientEntity)
-      : this.ingredientRepository;
+  async removeIngredient(id: string, clientSession?: ClientSession) {
+    const ingredientQuery = this.ingredientModel
+      .findOne({ _id: id })
+      .populate('recipes');
 
-    const ingredient = await repo.findOne({
-      where: { id },
-      relations: {
-        recipes: true,
-      },
-    });
+    if (clientSession) {
+      ingredientQuery.session(clientSession);
+    }
+
+    const ingredient = await ingredientQuery.exec();
 
     if (!ingredient) {
       throw new NotFoundException();
     }
 
-    if (ingredient.recipes && ingredient.recipes.length > 0) {
-      throw new ConflictException();
-    }
-
-    await repo.delete({ id });
+    await this.ingredientModel.deleteOne({ _id: id });
   }
 }

@@ -9,7 +9,7 @@ import {
   Query,
   Put,
 } from '@nestjs/common';
-import { ScheduledMealsService } from './scheduled_meals.service';
+import { ScheduledMealsService } from './meals.service';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -17,7 +17,6 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiQuery,
   ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
@@ -25,62 +24,55 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TransformResponse } from '../common/interceptors/responseTransformInterceptor';
 import { ScheduledMealResponseDto } from './dto/scheduledMealResponse.dto';
 import { ScheduledMealResponsePaginatedDto } from './dto/scheduledMealResponsePaginated.dto';
-import { CreateScheduledMealsRequestDto } from './dto/createScheduledMealsRequest.dto';
-import { CreateScheduledMealsResponseDto } from './dto/createScheduledMealsResponse.dto';
 import { ScheduledMealRequestQueryDto } from './dto/scheduledMealRequestQuery.dto';
 import { ScheduledMealRequestDto } from './dto/scheduledMealRequest.dto';
 
-@ApiTags('scheduled-meals')
+@ApiTags('meals')
 @ApiSecurity('access-token')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller({
-  path: 'scheduled-meals',
+  path: 'meals',
   version: '1',
 })
 export class ScheduledMealsController {
   constructor(private readonly scheduledMealsService: ScheduledMealsService) {}
 
   @ApiOperation({
-    operationId: 'createScheduledMeal',
+    operationId: 'createMeal',
   })
   @ApiBody({
-    type: CreateScheduledMealsRequestDto,
+    type: ScheduledMealRequestDto,
   })
   @ApiCreatedResponse({
-    type: CreateScheduledMealsResponseDto,
+    type: ScheduledMealResponseDto,
   })
-  @TransformResponse(CreateScheduledMealsResponseDto)
+  @TransformResponse(ScheduledMealResponseDto)
   @Post()
-  async createScheduledMeal(
-    @Body() createScheduledMealDto: CreateScheduledMealsRequestDto,
-  ): Promise<CreateScheduledMealsResponseDto> {
-    return await this.scheduledMealsService.create(
-      createScheduledMealDto.meals,
-    );
+  async createMeal(
+    @Body() createScheduledMealDto: ScheduledMealRequestDto,
+  ): Promise<ScheduledMealResponseDto> {
+    return await this.scheduledMealsService.createMeal(createScheduledMealDto);
   }
 
   @ApiOperation({
-    operationId: 'getScheduledMeals',
-  })
-  @ApiQuery({
-    type: ScheduledMealRequestQueryDto,
+    operationId: 'getMeals',
   })
   @ApiOkResponse({
     type: ScheduledMealResponsePaginatedDto,
   })
   @TransformResponse(ScheduledMealResponsePaginatedDto)
   @Get()
-  async getScheduledMeals(
+  async getMeals(
     @Query() filter: ScheduledMealRequestQueryDto,
   ): Promise<ScheduledMealResponsePaginatedDto> {
-    return (await this.scheduledMealsService.getScheduledMeals(
+    return (await this.scheduledMealsService.getMeals(
       filter,
     )) as ScheduledMealResponsePaginatedDto;
   }
 
   @ApiOperation({
-    operationId: 'getScheduledMeal',
+    operationId: 'getMeal',
   })
   @ApiOkResponse({
     type: ScheduledMealResponseDto,
@@ -88,14 +80,12 @@ export class ScheduledMealsController {
   @ApiNotFoundResponse()
   @TransformResponse(ScheduledMealResponseDto)
   @Get(':id')
-  async getScheduledMeal(
-    @Param('id') id: string,
-  ): Promise<ScheduledMealResponseDto> {
-    return await this.scheduledMealsService.findOne(id);
+  async getMeal(@Param('id') id: string): Promise<ScheduledMealResponseDto> {
+    return await this.scheduledMealsService.getMeal(id);
   }
 
   @ApiOperation({
-    operationId: 'updateScheduledMeal',
+    operationId: 'updateMeal',
   })
   @ApiBody({
     type: ScheduledMealRequestDto,
@@ -106,21 +96,24 @@ export class ScheduledMealsController {
   @ApiNotFoundResponse()
   @TransformResponse(ScheduledMealResponseDto)
   @Put(':id')
-  async updateScheduledMeal(
+  async updateMeal(
     @Param('id') id: string,
     @Body() updateScheduledMealDto: ScheduledMealRequestDto,
   ): Promise<ScheduledMealResponseDto> {
-    return await this.scheduledMealsService.update(id, updateScheduledMealDto);
+    return await this.scheduledMealsService.updateMeal(
+      id,
+      updateScheduledMealDto,
+    );
   }
 
   @ApiOperation({
-    operationId: 'deleteScheduledMeal',
+    operationId: 'deleteMeal',
   })
   @ApiOkResponse()
   @ApiNotFoundResponse()
   @TransformResponse(ScheduledMealResponseDto)
   @Delete(':id')
-  async deleteScheduledMeal(@Param('id') id: string) {
-    await this.scheduledMealsService.remove(id);
+  async deleteMeal(@Param('id') id: string) {
+    await this.scheduledMealsService.removeMeal(id);
   }
 }
