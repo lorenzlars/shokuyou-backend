@@ -15,14 +15,14 @@ export class ImagesService {
     @InjectRepository(ImageEntity)
     private imageRepository: Repository<ImageEntity>,
   ) {
-    const { username, password } = new URL(configService.get('CLOUDINARY_URL'));
-
-    cloudinary.v2.config({
-      secure: true,
-      cloud_name: configService.get('CLOUDINARY_CLOUD_NAME'),
-      api_key: username,
-      api_secret: password,
-    });
+    // const { username, password } = new URL(configService.get('CLOUDINARY_URL'));
+    //
+    // cloudinary.v2.config({
+    //   secure: true,
+    //   cloud_name: configService.get('CLOUDINARY_CLOUD_NAME'),
+    //   api_key: username,
+    //   api_secret: password,
+    // });
   }
 
   private async uploadImageFile(file: Express.Multer.File) {

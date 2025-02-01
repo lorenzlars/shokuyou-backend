@@ -45,7 +45,6 @@ export class AuthService {
       throw new ConflictException('User already exists');
     }
 
-    // TODO: Add salt env var?
     const hashedPassword = await bcrypt.hash(user.password, 10);
 
     return await this.usersService.create({
