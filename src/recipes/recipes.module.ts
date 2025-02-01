@@ -8,7 +8,6 @@ import { IngredientsModule } from '../ingredients/ingredients.module';
 import { RecipeEntity } from './entities/recipe.entity';
 import { RecipeIngredientEntity } from './entities/recipeIngredient.entity';
 import { UsersModule } from '../users/users.module';
-import { ImportRecipesService } from '../data/importRecipes.service';
 
 @Module({
   imports: [
@@ -18,7 +17,7 @@ import { ImportRecipesService } from '../data/importRecipes.service';
     IngredientsModule,
     TypeOrmModule.forFeature([RecipeEntity, RecipeIngredientEntity]),
   ],
-  providers: [RecipesService, ImportRecipesService],
+  providers: [RecipesService],
   controllers: [RecipesController],
   exports: [TypeOrmModule, RecipesService],
 })

@@ -35,7 +35,6 @@ import { RecipeResponseDto } from './dto/recipeResponse.dto';
 import { RecipeRequestDto } from './dto/recipeRequest.dto';
 import { TransformResponse } from '../common/interceptors/responseTransformInterceptor';
 import { RecipePaginatedResponseDto } from './dto/recipePaginatedResponse.dto';
-import { ImportRecipesService } from '../data/importRecipes.service';
 
 @ApiTags('recipes')
 @ApiSecurity('access-token')
@@ -46,10 +45,7 @@ import { ImportRecipesService } from '../data/importRecipes.service';
   version: '1',
 })
 export class RecipesController {
-  constructor(
-    private readonly recipesService: RecipesService,
-    private readonly recipesImportService: ImportRecipesService,
-  ) {}
+  constructor(private readonly recipesService: RecipesService) {}
 
   @ApiOperation({
     summary: 'Add a new recipes',

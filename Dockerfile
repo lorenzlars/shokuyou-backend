@@ -1,17 +1,21 @@
-FROM node:22
+FROM node:22 as build
 
 WORKDIR /usr/src/app
 
-RUN npm install -g pnpm@latest-10
-
-COPY pnpm-lock.yaml ./
-
-RUN pnpm fetch --prod
+RUN corepack enable
 
 COPY . .
 
-RUN pnpm install --ignore-scripts
+ENV NODE_ENV production
 
-RUN pnpm run build
+RUN yarn install --immutable
+
+RUN yarn run build
+
+
+FROM node:22
+
+COPY --from=build /usr/src/app/node_modules ./node_modules
+COPY --from=build /usr/src/app/dist ./dist
 
 CMD ["node", "dist/main"]
