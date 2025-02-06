@@ -31,7 +31,7 @@ class SyncDataDto<T> {
   deleted: string[];
 }
 
-export class SyncRequestDto {
+export class SyncPushRequestDto {
   @ApiProperty({
     type: SyncDataDto<RecipeResponseDto>,
   })

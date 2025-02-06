@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsObject } from 'class-validator';
+import { IsArray, IsISO8601, IsObject } from 'class-validator';
 import { Expose, Type } from 'class-transformer';
 import { RecipeResponseDto } from '../../recipes/dto/recipeResponse.dto';
 
@@ -31,7 +31,7 @@ class SyncDataDto<T> {
   deleted: string[];
 }
 
-export class SyncResponseDto {
+class SyncTablesDto {
   @ApiProperty({
     type: SyncDataDto<RecipeResponseDto>,
   })
@@ -39,4 +39,19 @@ export class SyncResponseDto {
   @Type(() => SyncDataDto<RecipeResponseDto>)
   @Expose()
   recipes: SyncDataDto<RecipeResponseDto>;
+}
+
+export class SyncPullResponseDto {
+  @ApiProperty({
+    type: SyncTablesDto,
+  })
+  @IsObject()
+  @Type(() => SyncTablesDto)
+  @Expose()
+  changes: SyncTablesDto;
+
+  @ApiProperty()
+  @IsISO8601()
+  @Expose()
+  timestamp: string;
 }

@@ -5,10 +5,10 @@ import {
   Post,
   UseGuards,
   NotImplementedException,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
-  ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
@@ -17,9 +17,11 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TransformResponse } from '../common/interceptors/responseTransformInterceptor';
-import { SyncResponseDto } from './dto/syncResponse.dto';
-import { SyncRequestDto } from './dto/syncRequest.dto';
+import { SyncPullResponseDto } from './dto/syncPullResponseDto';
+import { SyncPullQueryDto } from './dto/syncPullQueryDto';
 import { SyncService } from './sync.service';
+import { SyncPushRequestDto } from './dto/syncPushRequestDto';
+import { SyncPushQueryDto } from './dto/syncPushQueryDto';
 
 @ApiTags('sync')
 @ApiSecurity('access-token')
@@ -35,14 +37,12 @@ export class SyncController {
   @ApiOperation({
     operationId: 'syncPush',
   })
-  @ApiCreatedResponse({
-    type: SyncResponseDto,
-  })
-  @TransformResponse(SyncResponseDto)
+  @ApiOkResponse()
   @Post()
   async syncPush(
-    @Body() _syncRequestDto: SyncRequestDto,
-  ): Promise<SyncResponseDto> {
+    @Query() _syncPushQueryDto: SyncPushQueryDto,
+    @Body() _syncPushRequestDto: SyncPushRequestDto,
+  ) {
     throw new NotImplementedException();
   }
 
@@ -50,14 +50,16 @@ export class SyncController {
     operationId: 'syncPull',
   })
   @ApiOkResponse({
-    type: SyncResponseDto,
+    type: SyncPullResponseDto,
   })
   @ApiNotFoundResponse({
     description: 'Recipe not found',
   })
-  @TransformResponse(SyncResponseDto)
+  @TransformResponse(SyncPullResponseDto)
   @Get()
-  async syncPull(): Promise<SyncResponseDto> {
+  async syncPull(
+    @Query() _syncPullQueryDto: SyncPullQueryDto,
+  ): Promise<SyncPullResponseDto> {
     throw new NotImplementedException();
   }
 }
