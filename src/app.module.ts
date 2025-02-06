@@ -13,6 +13,7 @@ import { PlansModule } from './plans/plans.module';
 import { DataModule } from './data/data.module';
 import { ProductsModule } from './products/products.module';
 import { ScheduledMealsModule } from './scheduled_meals/scheduled_meals.module';
+import { SyncModule } from './sync/sync.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { ScheduledMealsModule } from './scheduled_meals/scheduled_meals.module';
     DataModule,
     ProductsModule,
     ScheduledMealsModule,
+    SyncModule,
   ],
   providers: [
     {
